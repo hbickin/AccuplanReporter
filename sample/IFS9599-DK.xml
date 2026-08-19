@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Ornek WorkOrder dokumani: [Accuplan].[dbo].[WorkOrder] id=182, name/number = IFS9599-DK
+  DEMO_MODE=1 iken sunucu bu dosyayi veritabani yerine kullanir.
+  Not: Gercek kayittaki Settings/Utilization/CutPlanSolutions bloklarinin cok uzun olan
+  bolumleri kisaltilmistir; rapor icin kullanilan tum alanlar birebir gercek degerlerdir.
+-->
+<WorkOrder>
+  <FormatInfo Version="16.0" />
+  <Information>
+    <WorkOrderNumber>IFS9599-DK</WorkOrderNumber>
+    <CutPlanManager>OKN KRKMZ</CutPlanManager>
+    <CompanyName>KIVANC</CompanyName>
+    <DateReceived>10/21/2024 13:45:40</DateReceived>
+    <CutDueDate />
+    <Comments></Comments>
+    <Description></Description>
+    <WorkOrderLocation></WorkOrderLocation>
+    <SpecialInstructions></SpecialInstructions>
+    <TotalProdPerWeek>0</TotalProdPerWeek>
+    <TotalProdPerYear>0</TotalProdPerYear>
+  </Information>
+  <Settings Name="">
+    <SelectedModel>843627-CKT-001</SelectedModel>
+    <StartMarkerNumber>01</StartMarkerNumber>
+    <MarkerPrefixType>WorkOrderNumber</MarkerPrefixType>
+    <ConsiderMarkersAsMLUtilization>1</ConsiderMarkersAsMLUtilization>
+    <Created>03/06/2024 08:13:29</Created>
+    <LastUpdated>05/09/2024 08:05:53</LastUpdated>
+    <Name>Default</Name>
+  </Settings>
+  <Models Device="K:" Area="ISDEMIR-2">
+    <Model Name="843627-CKT-001" BaseSize="54" IsDGModel="false">
+      <FabricCodes>
+        <Code>CP</Code><Code>CZ</Code><Code>DK</Code><Code>TELA</Code>
+      </FabricCodes>
+      <SizeLine FabricCodes="CP,CZ,DK,TELA" AddPcBundle="true">
+        <Size Id="1" Active="false">36</Size><Size Id="2" Active="false">38</Size>
+        <Size Id="3" Active="false">40</Size><Size Id="4" Active="false">42</Size>
+        <Size Id="5" Active="false">44</Size><Size Id="6" Active="false">46</Size>
+        <Size Id="7" Active="false">48</Size><Size Id="8" Active="false">50</Size>
+        <Size Id="9" Active="false">52</Size><Size Id="10" Active="false">54</Size>
+        <Size Id="11" Active="false">56</Size><Size Id="12" Active="false">58</Size>
+        <Size Id="13" Active="false">60</Size><Size Id="14" Active="false">62</Size>
+        <Size Id="15" Active="false">64</Size><Size Id="16" Active="false">66</Size>
+        <Size Id="17" Active="false">68</Size><Size Id="18" Active="false">70</Size>
+      </SizeLine>
+    </Model>
+  </Models>
+  <Products />
+  <CutPlans>
+    <CutPlan IsDisplayed="true" EstimateBundles="50" FontColorIndex="0">
+      <FabricCodes><Code>CP</Code></FabricCodes>
+      <Fabric Category="" Width="59.05512" Cost="0" Weight="0" Selvage="0" EndLoss="1.5748" DamageFactor="0" RelaxationDuration="0" Thickness="0" ThicknessVacuum="0">
+        <RollType Color="Color" Width="59.05512" Cost="0" Weight="0" Selvage="0" EndLoss="1.5748" DamageFactor="0" AverageRollLength="0" RollQuantity="0" IsIncluded="true" Thickness="0" ThicknessVacuum="0" RollEndsQuantity="0" />
+      </Fabric>
+      <CombineQuantity Source="false" />
+      <ProductionSteps>
+        <CalculationDate>10/21/2024 11:00:07</CalculationDate>
+        <GeneratedDate>10/21/2024 11:01:36</GeneratedDate>
+      </ProductionSteps>
+      <MarkerSettings Name="DEFAULT">
+        <MinBundleQuantity>0</MinBundleQuantity>
+        <MaxBundleQuantity>0</MaxBundleQuantity>
+        <MinMarkerLength>0</MinMarkerLength>
+        <MaxMarkerLength>78.74016</MaxMarkerLength>
+        <IsFusible>false</IsFusible>
+      </MarkerSettings>
+      <SpreadSettings Name="Default">
+        <TableLength>576</TableLength>
+        <TableWidth>72</TableWidth>
+        <MaxSpreadPlyQuantity>100</MaxSpreadPlyQuantity>
+        <MinSpreadPlyQuantity>1</MinSpreadPlyQuantity>
+        <SpreadingMethod>FaceUp</SpreadingMethod>
+        <Location>SİNOP</Location>
+      </SpreadSettings>
+      <CostSettings Name="Default" CurrencyCode="TRY">
+        <CuttingCutSpeed>1200.7874</CuttingCutSpeed>
+        <CuttingTimeToRemoveBundle>0</CuttingTimeToRemoveBundle>
+        <MarkingPlotSpeed>125.98425</MarkingPlotSpeed>
+        <SpreadingRollSetupTime>3</SpreadingRollSetupTime>
+        <SpreadingSpreadSetupTime>3</SpreadingSpreadSetupTime>
+        <SpreadingSpreadSpeed>900</SpreadingSpreadSpeed>
+        <SpreadingTurnTime>0.16667</SpreadingTurnTime>
+      </CostSettings>
+      <OrderSettings Name="TEKKATFARKLIYON">
+        <Annotation>PAYSIZ</Annotation>
+        <BlockBuffer>BAFIR-CUTTER-03</BlockBuffer>
+        <LayLimits SpreadingMethod="SinglePly">TEKKAT-FARKLI YON</LayLimits>
+        <Notch>P-NOTCH</Notch>
+        <IsAddedPcBd>true</IsAddedPcBd>
+      </OrderSettings>
+      <Input>
+        <BundleMeasures>
+          <Bundle SizeId="1" Area="328.04307" Perimeter="150.9675" PieceQuantity="4" PairedArea="164.02153" PairedPerimeter="75.48375" PairedPieceQuantity="2" />
+          <Bundle SizeId="2" Area="328.04307" Perimeter="150.9675" PieceQuantity="4" PairedArea="164.02153" PairedPerimeter="75.48375" PairedPieceQuantity="2" />
+          <Bundle SizeId="3" Area="328.04307" Perimeter="150.9675" PieceQuantity="4" PairedArea="164.02153" PairedPerimeter="75.48375" PairedPieceQuantity="2" />
+          <Bundle SizeId="4" Area="344.09673" Perimeter="153.7075" PieceQuantity="4" PairedArea="172.04836" PairedPerimeter="76.85375" PairedPieceQuantity="2" />
+          <Bundle SizeId="5" Area="362.55023" Perimeter="156.8571" PieceQuantity="4" PairedArea="181.27512" PairedPerimeter="78.42855" PairedPieceQuantity="2" />
+          <Bundle SizeId="6" Area="393.69323" Perimeter="163.08868" PieceQuantity="4" PairedArea="196.84662" PairedPerimeter="81.54434" PairedPieceQuantity="2" />
+          <Bundle SizeId="7" Area="412.76674" Perimeter="166.23828" PieceQuantity="4" PairedArea="206.38337" PairedPerimeter="83.11914" PairedPieceQuantity="2" />
+          <Bundle SizeId="8" Area="431.84024" Perimeter="169.38788" PieceQuantity="4" PairedArea="215.92012" PairedPerimeter="84.69394" PairedPieceQuantity="2" />
+          <Bundle SizeId="9" Area="450.91375" Perimeter="172.53748" PieceQuantity="4" PairedArea="225.45687" PairedPerimeter="86.26874" PairedPieceQuantity="2" />
+          <Bundle SizeId="10" Area="469.92427" Perimeter="175.67668" PieceQuantity="4" PairedArea="234.96214" PairedPerimeter="87.83834" PairedPieceQuantity="2" />
+          <Bundle SizeId="11" Area="489.06076" Perimeter="178.83668" PieceQuantity="4" PairedArea="244.53038" PairedPerimeter="89.41834" PairedPieceQuantity="2" />
+          <Bundle SizeId="12" Area="508.13426" Perimeter="181.98628" PieceQuantity="4" PairedArea="254.06713" PairedPerimeter="90.99314" PairedPieceQuantity="2" />
+          <Bundle SizeId="13" Area="527.20777" Perimeter="185.13588" PieceQuantity="4" PairedArea="263.60388" PairedPerimeter="92.56794" PairedPieceQuantity="2" />
+          <Bundle SizeId="14" Area="546.28127" Perimeter="188.28548" PieceQuantity="4" PairedArea="273.14064" PairedPerimeter="94.14274" PairedPieceQuantity="2" />
+          <Bundle SizeId="15" Area="565.35478" Perimeter="191.43508" PieceQuantity="4" PairedArea="282.67739" PairedPerimeter="95.71754" PairedPieceQuantity="2" />
+          <Bundle SizeId="16" Area="584.42828" Perimeter="194.58468" PieceQuantity="4" PairedArea="292.21414" PairedPerimeter="97.29234" PairedPieceQuantity="2" />
+          <Bundle SizeId="17" Area="603.50179" Perimeter="197.73428" PieceQuantity="4" PairedArea="301.75089" PairedPerimeter="98.86714" PairedPieceQuantity="2" />
+          <Bundle SizeId="18" Area="622.57529" Perimeter="200.88388" PieceQuantity="4" PairedArea="311.28765" PairedPerimeter="100.44194" PairedPieceQuantity="2" />
+        </BundleMeasures>
+        <BundleInfo />
+        <Color Name="Color">
+          <Bundle SizeId="7" Quantity="170" Min="170" Max="170" />
+          <Bundle SizeId="8" Quantity="200" Min="200" Max="200" />
+          <Bundle SizeId="9" Quantity="200" Min="200" Max="200" />
+          <Bundle SizeId="10" Quantity="180" Min="180" Max="180" />
+          <Bundle SizeId="11" Quantity="100" Min="100" Max="100" />
+          <Bundle SizeId="12" Quantity="50" Min="50" Max="50" />
+          <Bundle SizeId="14" Quantity="10" Min="10" Max="10" />
+        </Color>
+      </Input>
+      <Result>
+        <MarkerSpreadings>
+          <MarkerSpreading IsApproved="true" IsRollEnd="false" IsShortMarker="false">
+            <Marker Name="IFS9599-DK-01" CustomName="IFS9599-CP-01" OrderNumber="1" Width="59.05512" Utilization="0.865" MadeUtilization="0.95355" MadeLength="62.70325" IsFromLibrary="false" LayLimits="TEKKAT-FARKLI YON" Matching="" ShrinkStretchMode="Order" XShrinkStretch="0" YShrinkStretch="0" Shade="" SpreadMethod="SinglePly">
+              <Description></Description>
+              <Section Utilization="0.865">
+                <Bundle SizeId="7" Quantity="1" /><Bundle SizeId="8" Quantity="3" />
+                <Bundle SizeId="9" Quantity="3" /><Bundle SizeId="10" Quantity="1" />
+              </Section>
+            </Marker>
+            <SpreadSets>
+              <SpreadSet Id="1" SpreadQuantity="1"><plySet Color="Color" Shade="" PlyQuantity="60" SectionIdx="0" /></SpreadSet>
+            </SpreadSets>
+          </MarkerSpreading>
+          <MarkerSpreading IsApproved="true" IsRollEnd="false" IsShortMarker="false">
+            <Marker Name="IFS9599-DK-02" CustomName="IFS9599-CP-02" OrderNumber="2" Width="59.05512" Utilization="0.8625" IsFromLibrary="false" LayLimits="TEKKAT-FARKLI YON" Matching="" ShrinkStretchMode="Order" XShrinkStretch="0" YShrinkStretch="0" Shade="" SpreadMethod="SinglePly">
+              <Description></Description>
+              <Section Utilization="0.8625">
+                <Bundle SizeId="7" Quantity="2" /><Bundle SizeId="10" Quantity="2" />
+                <Bundle SizeId="11" Quantity="2" /><Bundle SizeId="12" Quantity="1" />
+              </Section>
+            </Marker>
+            <SpreadSets>
+              <SpreadSet Id="2" SpreadQuantity="1"><plySet Color="Color" Shade="" PlyQuantity="50" SectionIdx="0" /></SpreadSet>
+            </SpreadSets>
+          </MarkerSpreading>
+          <MarkerSpreading IsApproved="true" IsRollEnd="false" IsShortMarker="false">
+            <Marker Name="IFS9599-DK-03" CustomName="IFS9599-CP-03" OrderNumber="3" Width="59.05512" Utilization="0.865" IsFromLibrary="false" LayLimits="TEKKAT-FARKLI YON" Matching="" ShrinkStretchMode="Order" XShrinkStretch="0" YShrinkStretch="0" Shade="" SpreadMethod="SinglePly">
+              <Description></Description>
+              <Section Utilization="0.865">
+                <Bundle SizeId="7" Quantity="1" /><Bundle SizeId="8" Quantity="2" />
+                <Bundle SizeId="9" Quantity="2" /><Bundle SizeId="10" Quantity="2" />
+                <Bundle SizeId="14" Quantity="1" />
+              </Section>
+            </Marker>
+            <SpreadSets>
+              <SpreadSet Id="3" SpreadQuantity="1"><plySet Color="Color" Shade="" PlyQuantity="10" SectionIdx="0" /></SpreadSet>
+            </SpreadSets>
+          </MarkerSpreading>
+        </MarkerSpreadings>
+        <SpreadsOnTables>
+          <CutJobSettings DistributionMode="EqualSpreading" TableMode="ColorBased" SpreadingOrder="BySpreads" ColorOrder="Optimal" ColorsTogether="false">
+            <CutTable Id="2" /><CutTable Id="3" /><CutTable Id="4" />
+          </CutJobSettings>
+        </SpreadsOnTables>
+      </Result>
+    </CutPlan>
+    <CutPlan IsIncluded="false" IsSynchronized="true" IsDisplayed="false" EstimateBundles="50" FontColorIndex="0">
+      <FabricCodes><Code>CZ</Code></FabricCodes>
+      <Fabric Category="" Width="0" Cost="0" Weight="0" Selvage="0" EndLoss="0" DamageFactor="0">
+        <RollType Color="Color" Width="0" EndLoss="0" IsIncluded="true" />
+      </Fabric>
+      <ProductionSteps />
+      <MarkerSettings Name="DEFAULT"><MaxMarkerLength>0</MaxMarkerLength></MarkerSettings>
+      <SpreadSettings Name="Default"><SpreadingMethod>FaceUp</SpreadingMethod><Location>SİNOP</Location></SpreadSettings>
+      <OrderSettings Name="Default">
+        <Annotation>A</Annotation>
+        <LayLimits SpreadingMethod="SinglePly">L</LayLimits>
+        <Notch>P-NOTCH</Notch>
+      </OrderSettings>
+      <Input>
+        <BundleMeasures />
+        <BundleInfo />
+        <Color Name="Color">
+          <Bundle SizeId="7" Quantity="170" Min="170" Max="170" />
+          <Bundle SizeId="8" Quantity="200" Min="200" Max="200" />
+          <Bundle SizeId="9" Quantity="200" Min="200" Max="200" />
+          <Bundle SizeId="10" Quantity="180" Min="180" Max="180" />
+          <Bundle SizeId="11" Quantity="100" Min="100" Max="100" />
+          <Bundle SizeId="12" Quantity="50" Min="50" Max="50" />
+          <Bundle SizeId="14" Quantity="10" Min="10" Max="10" />
+        </Color>
+      </Input>
+      <Result><MarkerSpreadings /><SpreadsOnTables /></Result>
+    </CutPlan>
+    <CutPlan IsDisplayed="true" EstimateBundles="50" FontColorIndex="0">
+      <FabricCodes><Code>DK</Code></FabricCodes>
+      <Fabric Category="" Width="60.62992" Cost="0" Weight="0" Selvage="0" EndLoss="1.5748" DamageFactor="0" RelaxationDuration="0" Thickness="0" ThicknessVacuum="0">
+        <RollType Color="Color" Width="60.62992" Cost="0" Weight="0" Selvage="0" EndLoss="1.5748" DamageFactor="0" AverageRollLength="0" RollQuantity="0" IsIncluded="true" RollEndsQuantity="0" />
+      </Fabric>
+      <CombineQuantity Source="false"><Sizes /></CombineQuantity>
+      <ProductionSteps>
+        <CalculationDate>10/21/2024 11:04:36</CalculationDate>
+        <GeneratedDate>10/21/2024 11:05:15</GeneratedDate>
+      </ProductionSteps>
+      <MarkerSettings Name="DEFAULT">
+        <MinMarkerLength>0</MinMarkerLength>
+        <MaxMarkerLength>314.96063</MaxMarkerLength>
+        <IsFusible>false</IsFusible>
+      </MarkerSettings>
+      <SpreadSettings Name="Default">
+        <TableLength>576</TableLength>
+        <TableWidth>72</TableWidth>
+        <MaxSpreadPlyQuantity>100</MaxSpreadPlyQuantity>
+        <MinSpreadPlyQuantity>1</MinSpreadPlyQuantity>
+        <SpreadingMethod>FaceUp</SpreadingMethod>
+        <Location>SİNOP</Location>
+      </SpreadSettings>
+      <CostSettings Name="Default" CurrencyCode="TRY">
+        <CuttingCutSpeed>1200.7874</CuttingCutSpeed>
+        <CuttingTimeToRemoveBundle>0</CuttingTimeToRemoveBundle>
+        <SpreadingRollSetupTime>3</SpreadingRollSetupTime>
+        <SpreadingSpreadSetupTime>3</SpreadingSpreadSetupTime>
+        <SpreadingSpreadSpeed>900</SpreadingSpreadSpeed>
+        <SpreadingTurnTime>0.16667</SpreadingTurnTime>
+      </CostSettings>
+      <OrderSettings Name="TEKKATFARKLIYON">
+        <Annotation>PAYSIZ</Annotation>
+        <BlockBuffer>BAFIR-CUTTER-03</BlockBuffer>
+        <LayLimits SpreadingMethod="SinglePly">TEKKAT-FARKLI YON</LayLimits>
+        <Notch>P-NOTCH</Notch>
+        <IsAddedPcBd>true</IsAddedPcBd>
+      </OrderSettings>
+      <Input>
+        <BundleMeasures>
+          <Bundle SizeId="1" Area="2638.11406" Perimeter="984.54767" PieceQuantity="22" PairedArea="1796.08702" PairedPerimeter="621.87768" PairedPieceQuantity="14" />
+          <Bundle SizeId="2" Area="2698.27908" Perimeter="989.73841" PieceQuantity="22" PairedArea="1837.38398" PairedPerimeter="625.06728" PairedPieceQuantity="14" />
+          <Bundle SizeId="3" Area="2773.90944" Perimeter="999.83696" PieceQuantity="22" PairedArea="1890.37061" PairedPerimeter="631.89815" PairedPieceQuantity="14" />
+          <Bundle SizeId="4" Area="2834.99578" Perimeter="1005.43762" PieceQuantity="22" PairedArea="1932.12997" PairedPerimeter="635.30371" PairedPieceQuantity="14" />
+          <Bundle SizeId="5" Area="2882.09334" Perimeter="1008.73967" PieceQuantity="22" PairedArea="1966.14916" PairedPerimeter="637.59081" PairedPieceQuantity="14" />
+          <Bundle SizeId="6" Area="2979.43747" Perimeter="1022.45328" PieceQuantity="22" PairedArea="2030.31078" PairedPerimeter="646.65685" PairedPieceQuantity="14" />
+          <Bundle SizeId="7" Area="3062.17513" Perimeter="1031.43996" PieceQuantity="22" PairedArea="2081.96096" PairedPerimeter="651.78451" PairedPieceQuantity="14" />
+          <Bundle SizeId="8" Area="3161.06559" Perimeter="1045.17692" PieceQuantity="22" PairedArea="2147.07175" PairedPerimeter="660.86632" PairedPieceQuantity="14" />
+          <Bundle SizeId="9" Area="3296.79638" Perimeter="1063.76061" PieceQuantity="22" PairedArea="2239.3252" PairedPerimeter="672.38395" PairedPieceQuantity="14" />
+          <Bundle SizeId="10" Area="3435.18956" Perimeter="1082.27479" PieceQuantity="22" PairedArea="2333.36127" PairedPerimeter="683.85649" PairedPieceQuantity="14" />
+          <Bundle SizeId="11" Area="3576.43415" Perimeter="1100.77009" PieceQuantity="22" PairedArea="2429.36937" PairedPerimeter="695.32024" PairedPieceQuantity="14" />
+          <Bundle SizeId="12" Area="3720.60078" Perimeter="1119.27786" PieceQuantity="22" PairedArea="2527.38613" PairedPerimeter="706.79159" PairedPieceQuantity="14" />
+          <Bundle SizeId="13" Area="3867.73241" Perimeter="1137.79439" PieceQuantity="22" PairedArea="2627.43938" PairedPerimeter="718.2681" PairedPieceQuantity="14" />
+          <Bundle SizeId="14" Area="3960.13221" Perimeter="1146.85418" PieceQuantity="22" PairedArea="2685.01159" PairedPerimeter="723.44297" PairedPieceQuantity="14" />
+          <Bundle SizeId="15" Area="4025.14808" Perimeter="1151.73085" PieceQuantity="22" PairedArea="2728.81968" PairedPerimeter="726.52693" PairedPieceQuantity="14" />
+          <Bundle SizeId="16" Area="4089.6911" Perimeter="1156.63815" PieceQuantity="22" PairedArea="2772.26963" PairedPerimeter="729.62241" PairedPieceQuantity="14" />
+          <Bundle SizeId="17" Area="4153.97398" Perimeter="1161.59753" PieceQuantity="22" PairedArea="2815.5162" PairedPerimeter="732.74433" PairedPieceQuantity="14" />
+          <Bundle SizeId="18" Area="4218.00959" Perimeter="1166.60459" PieceQuantity="22" PairedArea="2858.57597" PairedPerimeter="735.89047" PairedPieceQuantity="14" />
+        </BundleMeasures>
+        <BundleInfo />
+        <Color Name="Color">
+          <Bundle SizeId="7" Quantity="170" Min="170" Max="170" />
+          <Bundle SizeId="8" Quantity="200" Min="200" Max="200" />
+          <Bundle SizeId="9" Quantity="200" Min="200" Max="200" />
+          <Bundle SizeId="10" Quantity="180" Min="180" Max="180" />
+          <Bundle SizeId="11" Quantity="100" Min="100" Max="100" />
+          <Bundle SizeId="12" Quantity="50" Min="50" Max="50" />
+          <Bundle SizeId="14" Quantity="10" Min="10" Max="10" />
+        </Color>
+      </Input>
+      <Result>
+        <MarkerSpreadings>
+          <MarkerSpreading IsApproved="true" IsRollEnd="false" IsShortMarker="false">
+            <Marker Name="IFS9599-DK-01" OrderNumber="1" Width="60.62992" Utilization="0.845" IsFromLibrary="false" LayLimits="TEKKAT-FARKLI YON" Matching="" ShrinkStretchMode="Order" Shade="" SpreadMethod="SinglePly">
+              <Description></Description>
+              <Section Utilization="0.845">
+                <Bundle SizeId="7" Quantity="1" /><Bundle SizeId="8" Quantity="2" /><Bundle SizeId="9" Quantity="2" />
+              </Section>
+            </Marker>
+            <SpreadSets>
+              <SpreadSet Id="4" SpreadQuantity="1"><plySet Color="Color" Shade="" PlyQuantity="100" SectionIdx="0" /></SpreadSet>
+            </SpreadSets>
+          </MarkerSpreading>
+          <MarkerSpreading IsApproved="true" IsRollEnd="false" IsShortMarker="false">
+            <Marker Name="IFS9599-DK-02" OrderNumber="2" Width="60.62992" Utilization="0.83" IsFromLibrary="false" LayLimits="TEKKAT-FARKLI YON" Matching="" ShrinkStretchMode="Order" Shade="" SpreadMethod="SinglePly">
+              <Description></Description>
+              <Section Utilization="0.83">
+                <Bundle SizeId="7" Quantity="1" /><Bundle SizeId="10" Quantity="2" /><Bundle SizeId="11" Quantity="1" />
+              </Section>
+            </Marker>
+            <SpreadSets>
+              <SpreadSet Id="5" SpreadQuantity="1"><plySet Color="Color" Shade="" PlyQuantity="70" SectionIdx="0" /></SpreadSet>
+            </SpreadSets>
+          </MarkerSpreading>
+          <MarkerSpreading IsApproved="true" IsRollEnd="false" IsShortMarker="false">
+            <Marker Name="IFS9599-DK-03" OrderNumber="3" Width="60.62992" Utilization="0.83" IsFromLibrary="false" LayLimits="TEKKAT-FARKLI YON" Matching="" ShrinkStretchMode="Order" Shade="" SpreadMethod="SinglePly">
+              <Description></Description>
+              <Section Utilization="0.83">
+                <Bundle SizeId="10" Quantity="1" /><Bundle SizeId="11" Quantity="1" /><Bundle SizeId="12" Quantity="1" />
+              </Section>
+            </Marker>
+            <SpreadSets>
+              <SpreadSet Id="6" SpreadQuantity="1"><plySet Color="Color" Shade="" PlyQuantity="30" SectionIdx="0" /></SpreadSet>
+            </SpreadSets>
+          </MarkerSpreading>
+          <MarkerSpreading IsApproved="true" IsRollEnd="false" IsShortMarker="false">
+            <Marker Name="IFS9599-DK-04" OrderNumber="4" Width="60.62992" Utilization="0.83" IsFromLibrary="false" LayLimits="TEKKAT-FARKLI YON" Matching="" ShrinkStretchMode="Order" Shade="" SpreadMethod="SinglePly">
+              <Description></Description>
+              <Section Utilization="0.83">
+                <Bundle SizeId="10" Quantity="1" /><Bundle SizeId="12" Quantity="2" /><Bundle SizeId="14" Quantity="1" />
+              </Section>
+            </Marker>
+            <SpreadSets>
+              <SpreadSet Id="7" SpreadQuantity="1"><plySet Color="Color" Shade="" PlyQuantity="10" SectionIdx="0" /></SpreadSet>
+            </SpreadSets>
+          </MarkerSpreading>
+        </MarkerSpreadings>
+        <SpreadsOnTables>
+          <CutJobSettings DistributionMode="EqualSpreading" TableMode="ColorBased">
+            <CutTable Id="2" /><CutTable Id="3" /><CutTable Id="4" />
+          </CutJobSettings>
+        </SpreadsOnTables>
+      </Result>
+    </CutPlan>
+    <CutPlan IsIncluded="false" IsSynchronized="true" IsDisplayed="false" EstimateBundles="50" FontColorIndex="0">
+      <FabricCodes><Code>TELA</Code></FabricCodes>
+      <Fabric Category="" Width="0" Cost="0" Weight="0" Selvage="0" EndLoss="0" DamageFactor="0">
+        <RollType Color="Color" Width="0" EndLoss="0" IsIncluded="true" />
+      </Fabric>
+      <ProductionSteps />
+      <MarkerSettings Name="DEFAULT"><MaxMarkerLength>0</MaxMarkerLength></MarkerSettings>
+      <SpreadSettings Name="Default"><SpreadingMethod>FaceUp</SpreadingMethod><Location>SİNOP</Location></SpreadSettings>
+      <OrderSettings Name="Default">
+        <Annotation>A</Annotation>
+        <LayLimits SpreadingMethod="SinglePly">L</LayLimits>
+        <Notch>P-NOTCH</Notch>
+      </OrderSettings>
+      <Input>
+        <BundleMeasures />
+        <BundleInfo />
+        <Color Name="Color">
+          <Bundle SizeId="7" Quantity="170" Min="170" Max="170" />
+          <Bundle SizeId="8" Quantity="200" Min="200" Max="200" />
+          <Bundle SizeId="9" Quantity="200" Min="200" Max="200" />
+          <Bundle SizeId="10" Quantity="180" Min="180" Max="180" />
+          <Bundle SizeId="11" Quantity="100" Min="100" Max="100" />
+          <Bundle SizeId="12" Quantity="50" Min="50" Max="50" />
+          <Bundle SizeId="14" Quantity="10" Min="10" Max="10" />
+        </Color>
+      </Input>
+      <Result><MarkerSpreadings /><SpreadsOnTables /></Result>
+    </CutPlan>
+  </CutPlans>
+  <CutPlanSolutions />
+</WorkOrder>
