@@ -1,10 +1,13 @@
-# SSRS / RDL sürümü — Kesimhane Asorti Raporu
+# Kesimhane Asorti Raporu — SSRS / RDL sürümü
 
 Accuplan iş emirlerinin `[Accuplan].[dbo].[WorkOrder].[document]` alanındaki XML'i **doğrudan
 SQL Server üzerinde** ayrıştırıp kesimhane asorti raporunu üretir.
 
-Bu bölüm kendi başına çalışır: deponun kökündeki Node.js / HTML uygulamasıyla hiçbir bağı yoktur,
-Node.js kurulumu gerektirmez. İhtiyaç duyulan tek şey **SQL Server + Reporting Services**'tir.
+Bu klasör kendi başına çalışır: Node.js, npm veya herhangi bir paket kurulumu gerektirmez.
+İhtiyaç duyulan tek şey **SQL Server + Reporting Services**'tir.
+
+> Tarayıcıda çalışan jQuery sürümü için **[`../html`](../html)** klasörüne bakın. Hesap formülleri
+> iki sürümde aynıdır ve aynı iş emrinde birebir aynı sonucu verir.
 
 > **Express sürümü kullanıyorsanız:** Reporting Services'in Express sürümü ücretsizdir ve raporu
 > çalıştırmak, tarayıcıda açmak, Excel/PDF'e aktarmak için yeterlidir. Ancak **zamanlanmış
@@ -14,12 +17,13 @@ Node.js kurulumu gerektirmez. İhtiyaç duyulan tek şey **SQL Server + Reportin
 > sürece sorun çıkmaz.
 
 ```
-ssrs/
-  sql/   01_accuplan_report_functions.sql   XML ayrıştırma fonksiyonları
-         02_accuplan_report_procs.sql       hesaplar + rapor prosedürleri
-         03_dogrulama.sql                   kurulum sonrası kontrol betiği
-  rdl/   AccuplanKesimRaporu.rdl            SSRS raporu
-  tools/ rdl_check.py                       RDL yapısal doğrulayıcı (geliştirme aracı)
+rdl/
+  AccuplanKesimRaporu.rdl              SSRS raporu
+  sql/  01_accuplan_report_functions.sql   XML ayrıştırma fonksiyonları
+        02_accuplan_report_procs.sql       hesaplar + rapor prosedürleri
+        03_dogrulama.sql                   kurulum sonrası kontrol betiği
+  tools/rdl_check.py                   RDL yapısal doğrulayıcı (geliştirme aracı)
+  ornek-document.xml                   örnek iş emri dokümanı (IFS9599-DK)
 ```
 
 ---
@@ -31,14 +35,14 @@ ssrs/
 `Accuplan` veritabanında sırasıyla çalıştırın (SSMS veya `sqlcmd`):
 
 ```
-ssrs\sql\01_accuplan_report_functions.sql
-ssrs\sql\02_accuplan_report_procs.sql
+rdl\sql\01_accuplan_report_functions.sql
+rdl\sql\02_accuplan_report_procs.sql
 ```
 
 Kontrol için (isteğe bağlı, örnek iş emri adını betiğin başında değiştirin):
 
 ```
-ssrs\sql\03_dogrulama.sql
+rdl\sql\03_dogrulama.sql
 ```
 
 Beklenen sonuç: `KESİM FARKI kontrolu` bölümü **boş** döner — yani kesim adetleri iş emri
@@ -53,7 +57,7 @@ GRANT EXECUTE ON SCHEMA::dbo TO [rapor_kullanicisi];   -- ya da tek tek usp_Accu
 
 ### 2. Rapor
 
-1. `ssrs\rdl\AccuplanKesimRaporu.rdl` dosyasını **Report Builder** (veya Visual Studio / SSDT) ile açın.
+1. `rdl\AccuplanKesimRaporu.rdl` dosyasını **Report Builder** (veya Visual Studio / SSDT) ile açın.
 2. `Accuplan` veri kaynağının bağlantı dizesinde `SUNUCU-ADI` yerine kendi sunucunuzu yazın:
    `Data Source=SUNUCU-ADI;Initial Catalog=Accuplan`
    Named instance ise örnek adı da yazılır: `Data Source=SUNUCU\SQLEXPRESS;Initial Catalog=Accuplan`
@@ -142,9 +146,17 @@ tutmaz. Fabrikanın gerçek süreleriyle uyuşmuyorsa `fn_AccuplanMarkerRows` i�
 RDL dosyasında elle değişiklik yapıldıysa yapısal kontrol:
 
 ```bash
-python3 ssrs/tools/rdl_check.py
+python3 rdl/tools/rdl_check.py
 ```
 
 Kontrol edilenler: tablix gövde satır/sütun sayısının hiyerarşiyle uyumu, her satırdaki hücre
 sayısı, ifadelerdeki `Fields!` ve `Parameters!` referanslarının tanımlı olması, ölçü değerlerinin
 geçerli birimde (`in/mm/cm/pt/pc`) olması ve Textbox adlarının benzersizliği.
+
+---
+
+## Örnek doküman
+
+`ornek-document.xml`, `WorkOrder.document` alanının çözülmüş hâlidir (iş emri IFS9599-DK, id 182).
+Fonksiyonları geliştirirken veya XML yapısını incelerken referans olarak kullanılabilir; raporun
+çalışması için gerekli değildir.

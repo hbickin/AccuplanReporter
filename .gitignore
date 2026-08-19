@@ -1,3 +1,8 @@
 node_modules/
 .env
-data/reports/*.json
+html/data/reports/*.json
+
+# SSRS gecici dosyalari
+*.rdl.data
+bin/
+obj/
