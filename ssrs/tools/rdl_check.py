@@ -72,6 +72,44 @@ for tablix in root.iter(Q('Tablix')):
     else:
         ok('%s: %d sütun x %d satır, hiyerarşiyle uyumlu' % (ad, sutun, len(satirlar)))
 
+    # --- kose bolgesi ---------------------------------------------------------
+    # Hem satir hem sutun basligi varsa TablixCorner zorunludur; satir sayisi
+    # sutun hiyerarsisinin, hucre sayisi satir hiyerarsisinin baslikli derinligi
+    # kadar olmalidir. Aksi halde Report Builder "invalid TablixCornerCell" der.
+    def baslik_derinligi(members_el, seviye=1):
+        derin = 0
+        for m in members_el.findall(Q('TablixMember')):
+            if m.find(Q('TablixHeader')) is not None:
+                derin = max(derin, seviye)
+            alt = m.find(Q('TablixMembers'))
+            if alt is not None:
+                derin = max(derin, baslik_derinligi(alt, seviye + 1))
+        return derin
+
+    satir_derin, sutun_derin = baslik_derinligi(rh), baslik_derinligi(ch)
+    kose = tablix.find(Q('TablixCorner'))
+    if satir_derin and sutun_derin:
+        onceki_hata = len(hatalar)
+        if kose is None:
+            hata('%s: satır ve sütun başlığı var, TablixCorner eksik (%dx%d olmalı)'
+                 % (ad, sutun_derin, satir_derin))
+        else:
+            kose_satir = kose.find(Q('TablixCornerRows')).findall(Q('TablixCornerRow'))
+            if len(kose_satir) != sutun_derin:
+                hata('%s: köşe satır sayısı %d, %d olmalı' % (ad, len(kose_satir), sutun_derin))
+            for i, ks in enumerate(kose_satir):
+                hucreler = ks.findall(Q('TablixCornerCell'))
+                if len(hucreler) != satir_derin:
+                    hata('%s: %d. köşe satırında %d hücre var, %d olmalı'
+                         % (ad, i + 1, len(hucreler), satir_derin))
+                for h in hucreler:
+                    if h.find(Q('CellContents')) is None:
+                        hata('%s: köşe hücresinde CellContents yok' % ad)
+            if len(hatalar) == onceki_hata:
+                ok('%s: köşe bölgesi %dx%d' % (ad, sutun_derin, satir_derin))
+    elif kose is not None:
+        hata('%s: başlık yokken TablixCorner tanımlanmış' % ad)
+
     for i, satir in enumerate(satirlar):
         hucre = len(satir.find(Q('TablixCells')).findall(Q('TablixCell')))
         if hucre != sutun:
