@@ -34,6 +34,14 @@ def hata(msg):
     kontrol.append('  HATA ' + msg)
 
 
+uyarilar = []
+
+
+def uyari(msg):
+    uyarilar.append(msg)
+    kontrol.append('  uyarı ' + msg)
+
+
 # --- veri kumeleri ve alanlari ------------------------------------------------
 datasets = {}
 for ds in root.iter(Q('DataSet')):
@@ -187,5 +195,10 @@ else:
 
 print('\n'.join(kontrol))
 print('')
-print('%d hata' % len(hatalar) if hatalar else 'RDL yapısal kontrolleri başarılı.')
+if hatalar:
+    print('%d hata' % len(hatalar))
+elif uyarilar:
+    print('RDL yapısal kontrolleri başarılı (%d uyarı).' % len(uyarilar))
+else:
+    print('RDL yapısal kontrolleri başarılı.')
 sys.exit(1 if hatalar else 0)
