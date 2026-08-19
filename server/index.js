@@ -60,7 +60,7 @@ app.get('/api/health', function (req, res) {
     demo: useDemo(),
     dbConfigured: config.dbConfigured,
     database: config.dbConfigured ? config.db.database : null,
-    server: config.dbConfigured ? config.db.server : null
+    server: config.dbConfigured ? config.dbTarget : null
   });
 });
 
@@ -151,5 +151,5 @@ app.listen(config.port, function () {
   console.log('AccuplanReporter -> http://localhost:' + config.port);
   console.log(useDemo()
     ? '  Mod: DEMO (sample/*.xml). Veritabani icin .env dosyasini doldurun.'
-    : '  Mod: MSSQL ' + config.db.server + ' / ' + config.db.database);
+    : '  Mod: MSSQL ' + config.dbTarget + ' / ' + config.db.database);
 });

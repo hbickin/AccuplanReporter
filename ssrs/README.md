@@ -6,6 +6,13 @@ SQL Server üzerinde** ayrıştırıp kesimhane asorti raporunu üretir.
 Bu bölüm kendi başına çalışır: deponun kökündeki Node.js / HTML uygulamasıyla hiçbir bağı yoktur,
 Node.js kurulumu gerektirmez. İhtiyaç duyulan tek şey **SQL Server + Reporting Services**'tir.
 
+> **Express sürümü kullanıyorsanız:** Reporting Services'in Express sürümü ücretsizdir ve raporu
+> çalıştırmak, tarayıcıda açmak, Excel/PDF'e aktarmak için yeterlidir. Ancak **zamanlanmış
+> abonelikler (e-posta/klasöre otomatik gönderim), önbellek ve rapor geçmişi Express'te yoktur**;
+> bunlar Standard ve üzeri sürümlerde bulunur. Ayrıca Express sürümünde rapor yalnızca **aynı
+> makinedeki** SQL Server örneğinden veri çekebilir — Accuplan veritabanı da o örnekte olduğu
+> sürece sorun çıkmaz.
+
 ```
 ssrs/
   sql/   01_accuplan_report_functions.sql   XML ayrıştırma fonksiyonları
@@ -49,6 +56,7 @@ GRANT EXECUTE ON SCHEMA::dbo TO [rapor_kullanicisi];   -- ya da tek tek usp_Accu
 1. `ssrs\rdl\AccuplanKesimRaporu.rdl` dosyasını **Report Builder** (veya Visual Studio / SSDT) ile açın.
 2. `Accuplan` veri kaynağının bağlantı dizesinde `SUNUCU-ADI` yerine kendi sunucunuzu yazın:
    `Data Source=SUNUCU-ADI;Initial Catalog=Accuplan`
+   Named instance ise örnek adı da yazılır: `Data Source=SUNUCU\SQLEXPRESS;Initial Catalog=Accuplan`
 3. Önizlemede **İŞEMRİ NO** listesinden iş emrini seçin.
 4. Rapor sunucusuna dağıtın: Report Builder → Kaydet → Rapor Sunucusu.
 

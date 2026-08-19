@@ -58,6 +58,11 @@ npm start
 # tarayıcı: http://localhost:3000
 ```
 
+**Named instance** (örn. `SUNUCU\SQLEXPRESS`) kullanıyorsanız `DB_SERVER` alanına ters bölü ile
+tek satırda yazmanız yeterli; uygulama sunucu ve örnek adını ayırır. Bu durumda **`DB_PORT`
+satırını silin** — SQL Server sürücüsü port ile örnek adını aynı anda kabul etmez. SQL Browser
+servisi kapalıysa örnek adı yerine örneğin sabit portunu `DB_PORT` ile verin.
+
 Windows'ta bunun yerine **`baslat.bat`** dosyasını çift tıklamanız da yeterlidir; gerekli kurulumu
 yapıp tarayıcıyı açar.
 
@@ -175,7 +180,7 @@ için **[ssrs/README.md](ssrs/README.md)** dosyasına bakın.
 | Gereksinim | Node.js | SQL Server Reporting Services (Express sürümü ücretsiz) |
 | Kurulum | istemci makinede | sunucuda bir kez, tüm kullanıcılar tarayıcıdan açar |
 | Excel / PDF | ExcelJS ile xlsx | SSRS'in kendi Excel / PDF / Word dışa aktarımı |
-| Zamanlanmış gönderim | yok | SSRS abonelikleri (e-posta, klasör) |
+| Zamanlanmış gönderim | yok | SSRS abonelikleri (yalnızca Standard ve üzeri; Express'te yok) |
 | Yetkilendirme | yok | SSRS klasör/rol izinleri |
 | Türkçe karakter | Node UTF-8 çözümü | `CAST(document AS XML)` ile sorunsuz |
 
