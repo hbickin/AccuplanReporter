@@ -6,7 +6,7 @@ RDL yapisal kontrolu — Report Builder acmadan once yakalanabilecek hatalar:
   * Ifadelerdeki Fields!X.Value alanlari ilgili veri kumesinde tanimli mi
   * Parameters!X.Value parametreleri raporda tanimli mi
   * Textbox adlari benzersiz mi
-Calistirmak icin:  python3 test/rdl_check.py [rdl/AccuplanKesimRaporu.rdl]
+Calistirmak icin:  python3 ssrs/tools/rdl_check.py [ssrs/rdl/AccuplanKesimRaporu.rdl]
 """
 import re
 import sys
@@ -17,7 +17,7 @@ NS = {'r': 'http://schemas.microsoft.com/sqlserver/reporting/2010/01/reportdefin
 Q = lambda t: '{%s}%s' % (NS['r'], t)
 
 path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
-    os.path.dirname(__file__), '..', 'rdl', 'AccuplanKesimRaporu.rdl')
+    os.path.dirname(os.path.abspath(__file__)), '..', 'rdl', 'AccuplanKesimRaporu.rdl')
 
 tree = ET.parse(path)
 root = tree.getroot()

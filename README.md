@@ -3,8 +3,8 @@
 Accuplan iş emirlerinin (`[Accuplan].[dbo].[WorkOrder]`) `document` alanındaki XML'i okuyup
 **kesimhane asorti raporunu** üreten uygulama. İki sürüm bir arada:
 
-* **HTML + jQuery** — tarayıcıda çalışır, Excel'e aktarır (`public/`, `server/`)
-* **SSRS / RDL** — raporu veritabanı sunucusundan üretir (`rdl/`, `sql/`)
+* **HTML + jQuery** — tarayıcıda çalışır, Excel'e aktarır (kök dizin: `public/`, `server/`)
+* **SSRS / RDL** — raporu veritabanı sunucusundan üretir (`ssrs/` bölümü, ayrı kurulur)
 
 Rapor düzeni `EminAsortiKesimhaneBosSablon.xlsx` şablonunu izler: her kumaş (cut plan) için bir
 **KESİM** sayfası ve tüm planları toplayan bir **ÖZET** sayfası.
@@ -164,12 +164,13 @@ alanları dokümanda tutmaz.
 
 ---
 
-## SSRS / RDL sürümü (Report Builder)
+## SSRS / RDL sürümü
 
-Aynı rapor, HTML uygulamasına hiç gerek kalmadan **SSRS raporu (.rdl)** olarak da çalışır.
-Bu yolda XML ayrıştırma ve tüm hesaplar T-SQL tarafındadır; rapor doğrudan veritabanından beslenir.
+Aynı rapor, Node.js'e hiç gerek kalmadan **SSRS raporu (.rdl)** olarak da çalışır. Bu sürüm
+deponun `ssrs/` bölümündedir ve kendi başına kuruludur — kurulum, rapor içeriği ve veri katmanı
+için **[ssrs/README.md](ssrs/README.md)** dosyasına bakın.
 
-| | HTML + Node | RDL / SSRS |
+| | HTML + Node (kök dizin) | RDL / SSRS (`ssrs/`) |
 |---|---|---|
 | Gereksinim | Node.js | SQL Server Reporting Services (Express sürümü ücretsiz) |
 | Kurulum | istemci makinede | sunucuda bir kez, tüm kullanıcılar tarayıcıdan açar |
@@ -178,49 +179,7 @@ Bu yolda XML ayrıştırma ve tüm hesaplar T-SQL tarafındadır; rapor doğruda
 | Yetkilendirme | yok | SSRS klasör/rol izinleri |
 | Türkçe karakter | Node UTF-8 çözümü | `CAST(document AS XML)` ile sorunsuz |
 
-### Kurulum
-
-```sql
--- Accuplan veritabanında, sırasıyla:
-:r sql\01_accuplan_report_functions.sql
-:r sql\02_accuplan_report_procs.sql
-:r sql\03_dogrulama.sql        -- kontrol (isteğe bağlı)
-```
-
-Sonra `rdl\AccuplanKesimRaporu.rdl` dosyasını **Report Builder** veya Visual Studio ile açın:
-
-1. Veri kaynağı `Accuplan` → bağlantı dizesindeki `SUNUCU-ADI` yerine kendi sunucunuzu yazın.
-2. Önizlemede **İŞEMRİ NO** listesinden iş emrini seçin.
-3. Rapor sunucusuna dağıtın (Report Builder → Kaydet → Rapor Sunucusu).
-
-### Rapor yapısı
-
-- **Parametreler:** İŞEMRİ NO (veritabanından dolan liste), Pastal payı (boş bırakılırsa kumaşın
-  `EndLoss` değeri), Pastalsız planları da göster.
-- **ÖZET** — plan bazında pastal, kat, serim, kesim adedi, kumaş sarfı, ağırlıklı verimlilik, süreler.
-- **BEDEN DAĞILIMI** — bedenler sütun grubu olarak (beden sayısı iş emrine göre kendiliğinden değişir).
-- **KESİM PLANLARI** — her kumaş için İŞEMRİ ADETİ + pastal satırları + TOPLAM ASORTİ / TOPLAM KESİM /
-  KESİM FARKI / BEDEN DAĞILIMI %. Her kumaş planı yeni sayfada başlar; sayfa adı `KESİM-1`, `KESİM-2`…
-  olduğu için **Excel'e aktarımda her kumaş ayrı sayfa (sheet) olarak** gelir — şablonun birebir karşılığı.
-
-### Veri katmanı
-
-| Nesne | İşlevi |
-|---|---|
-| `fn_AccuplanDoc` | `document` alanını XML'e çevirir |
-| `fn_AccuplanHeader` / `fn_AccuplanSizes` / `fn_AccuplanPlans` | başlık, bedenler, kumaş planları |
-| `fn_AccuplanOrderQty` / `fn_AccuplanMeasures` / `fn_AccuplanAsorti` | sipariş adetleri, parça ölçüleri, asorti |
-| `fn_AccuplanMarkerBase` | pastal + serim kümesi (kat ve serim ayrı) |
-| `fn_AccuplanMarkerRows` | pastal boyu, sarf, verimlilik, süre hesapları |
-| `usp_AccuplanWorkOrderList` | parametre listesi |
-| `usp_AccuplanReportHeader` / `usp_AccuplanSummary` / `usp_AccuplanSizeDistribution` | rapor veri kümeleri |
-| `usp_AccuplanCutMatrix` | KESİM matrisi (her hücre bir satır) |
-
-Hesap formülleri HTML sürümüyle aynıdır ve aynı örnek iş emri üzerinde birebir aynı sonucu verir.
-
-> **Türkçe karakter uyarısı:** `CAST(document AS VARCHAR(MAX))` kullanılırsa `SİNOP` → `SÄ°NOP`
-> olur. Fonksiyonlar bu yüzden her yerde `CAST(document AS XML)` kullanır — bu dönüşüm XML
-> ayrıştırıcısı UTF-8'i doğru yorumladığı için sorunsuzdur.
+Hesap formülleri iki sürümde aynıdır ve aynı örnek iş emrinde birebir aynı sonucu verir.
 
 ---
 
@@ -228,8 +187,10 @@ Hesap formülleri HTML sürümüyle aynıdır ve aynı örnek iş emri üzerinde
 
 ```
 baslat.bat       Windows başlatıcı (kurulum + sunucu + tarayıcı)
-rdl/             SSRS raporu (AccuplanKesimRaporu.rdl)
-sql/             RDL veri katmanı: XML ayrıştırma fonksiyonları + rapor prosedürleri
+ssrs/            SSRS sürümü — Node.js'ten bağımsız, kendi README'si var
+  sql/           XML ayrıştırma fonksiyonları + rapor prosedürleri
+  rdl/           AccuplanKesimRaporu.rdl
+  tools/         rdl_check.py (RDL yapısal doğrulayıcı)
 server/          Express API (mssql okuma, rapor kaydetme)
   config.js      .env okuma
   db.js          MSSQL sorguları + varbinary→metin çözümü
@@ -242,7 +203,7 @@ public/
   js/app.js               Arayüz akışı
   vendor/        jQuery, ExcelJS, FileSaver (depoda hazır — çevrimdışı mod için)
 sample/          Örnek iş emri dokümanı (demo modu)
-test/            Hesaplama doğrulama testleri (parser.test.js, rdl_check.py)
+test/            Hesaplama doğrulama testleri (npm test)
 data/reports/    Kaydedilen raporlar (iş emri numarasıyla)
 ```
 
