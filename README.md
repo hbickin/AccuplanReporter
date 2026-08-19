@@ -3,8 +3,9 @@
 Accuplan iş emirlerinin (`[Accuplan].[dbo].[WorkOrder]`) `document` alanındaki XML'i okuyup
 **kesimhane asorti raporunu** üreten uygulama. İki sürüm bir arada:
 
-* **HTML + jQuery** — tarayıcıda çalışır, Excel'e aktarır (kök dizin: `public/`, `server/`)
-* **SSRS / RDL** — raporu veritabanı sunucusundan üretir (`ssrs/` bölümü, ayrı kurulur)
+Bu dal (`html`) **tarayıcıda çalışan jQuery sürümünü** içerir: iş emrini seçer, `document`
+alanını okur, şablon düzeninde raporlar ve Excel'e aktarır.
+SSRS sürümü için **[`rdl`](../../tree/rdl)** dalına bakın.
 
 Rapor düzeni `EminAsortiKesimhaneBosSablon.xlsx` şablonunu izler: her kumaş (cut plan) için bir
 **KESİM** sayfası ve tüm planları toplayan bir **ÖZET** sayfası.
@@ -169,19 +170,17 @@ alanları dokümanda tutmaz.
 
 ---
 
-## SSRS / RDL sürümü
+## RDL / SSRS sürümü başka dalda
 
-Aynı rapor, Node.js'e hiç gerek kalmadan **SSRS raporu (.rdl)** olarak da çalışır. Bu sürüm
-deponun `ssrs/` bölümündedir ve kendi başına kuruludur — kurulum, rapor içeriği ve veri katmanı
-için **[ssrs/README.md](ssrs/README.md)** dosyasına bakın.
+Aynı rapor, Node.js'e hiç gerek kalmadan **SSRS raporu (.rdl)** olarak da hazırlandı.
+O sürüm bu depoda ayrı bir daldadır: **[`rdl`](../../tree/rdl)**.
 
-| | HTML + Node (kök dizin) | RDL / SSRS (`ssrs/`) |
+| | `html` dalı (bu dal) | `rdl` dalı |
 |---|---|---|
 | Gereksinim | Node.js | SQL Server Reporting Services (Express sürümü ücretsiz) |
 | Kurulum | istemci makinede | sunucuda bir kez, tüm kullanıcılar tarayıcıdan açar |
 | Excel / PDF | ExcelJS ile xlsx | SSRS'in kendi Excel / PDF / Word dışa aktarımı |
-| Zamanlanmış gönderim | yok | SSRS abonelikleri (yalnızca Standard ve üzeri; Express'te yok) |
-| Yetkilendirme | yok | SSRS klasör/rol izinleri |
+| Zamanlanmış gönderim | yok | SSRS abonelikleri (Standard ve üzeri) |
 | Türkçe karakter | Node UTF-8 çözümü | `CAST(document AS XML)` ile sorunsuz |
 
 Hesap formülleri iki sürümde aynıdır ve aynı örnek iş emrinde birebir aynı sonucu verir.
@@ -192,10 +191,6 @@ Hesap formülleri iki sürümde aynıdır ve aynı örnek iş emrinde birebir ay
 
 ```
 baslat.bat       Windows başlatıcı (kurulum + sunucu + tarayıcı)
-ssrs/            SSRS sürümü — Node.js'ten bağımsız, kendi README'si var
-  sql/           XML ayrıştırma fonksiyonları + rapor prosedürleri
-  rdl/           AccuplanKesimRaporu.rdl
-  tools/         rdl_check.py (RDL yapısal doğrulayıcı)
 server/          Express API (mssql okuma, rapor kaydetme)
   config.js      .env okuma
   db.js          MSSQL sorguları + varbinary→metin çözümü
