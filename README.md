@@ -1,225 +1,161 @@
-# AccuplanReporter
+# Kesimhane Asorti Raporu — SSRS / RDL sürümü
 
-Accuplan iş emirlerinin (`[Accuplan].[dbo].[WorkOrder]`) `document` alanındaki XML'i okuyup
-**kesimhane asorti raporunu** üreten uygulama. İki sürüm bir arada:
+Accuplan iş emirlerinin `[Accuplan].[dbo].[WorkOrder].[document]` alanındaki XML'i **doğrudan
+SQL Server üzerinde** ayrıştırıp kesimhane asorti raporunu üretir.
 
-* **HTML + jQuery** — tarayıcıda çalışır, Excel'e aktarır (kök dizin: `public/`, `server/`)
-* **SSRS / RDL** — raporu veritabanı sunucusundan üretir (`ssrs/` bölümü, ayrı kurulur)
+Bu dal (`rdl`) kendi başına çalışır: Node.js, npm veya herhangi bir paket kurulumu gerektirmez.
+İhtiyaç duyulan tek şey **SQL Server + Reporting Services**'tir.
 
-Rapor düzeni `EminAsortiKesimhaneBosSablon.xlsx` şablonunu izler: her kumaş (cut plan) için bir
-**KESİM** sayfası ve tüm planları toplayan bir **ÖZET** sayfası.
+> Tarayıcıda çalışan jQuery sürümü için **[`html`](../../tree/html)** dalına bakın. Hesap
+> formülleri iki dalda aynıdır ve aynı iş emrinde birebir aynı sonucu verir.
+
+> **Express sürümü kullanıyorsanız:** Reporting Services'in Express sürümü ücretsizdir ve raporu
+> çalıştırmak, tarayıcıda açmak, Excel/PDF'e aktarmak için yeterlidir. Ancak **zamanlanmış
+> abonelikler (e-posta/klasöre otomatik gönderim), önbellek ve rapor geçmişi Express'te yoktur**;
+> bunlar Standard ve üzeri sürümlerde bulunur. Ayrıca Express sürümünde rapor yalnızca **aynı
+> makinedeki** SQL Server örneğinden veri çekebilir — Accuplan veritabanı da o örnekte olduğu
+> sürece sorun çıkmaz.
+
+```
+sql/    01_accuplan_report_functions.sql   XML ayrıştırma fonksiyonları
+        02_accuplan_report_procs.sql       hesaplar + rapor prosedürleri
+        03_dogrulama.sql                   kurulum sonrası kontrol betiği
+rdl/    AccuplanKesimRaporu.rdl            SSRS raporu
+tools/  rdl_check.py                       RDL yapısal doğrulayıcı (geliştirme aracı)
+ornek-document.xml                         örnek iş emri dokümanı (IFS9599-DK)
+```
 
 ---
 
-## İki kullanım şekli
+## Kurulum
 
-| | Veritabanına bağlı mod | Çevrimdışı mod |
-|---|---|---|
-| Gereksinim | Node.js kurulu olmalı | **Hiçbir kurulum gerekmez** |
-| İş emri seçimi | Açılır listeden (`WorkOrder` tablosu) | İş emri XML'ini dosyadan yüklersiniz |
-| Raporu saklama | `data/reports/` klasörüne | `.json` olarak indirilir, geri yüklenir |
-| Excel'e aktarma | var | var |
+### 1. Veritabanı nesneleri
 
-> Tarayıcı doğrudan MSSQL'e bağlanamaz — bu güvenlik nedeniyle hiçbir tarayıcıda mümkün değildir.
-> İş emrini listeden seçip veritabanından okumak için küçük bir yerel sunucu (Node.js) gerekir.
+`Accuplan` veritabanında sırasıyla çalıştırın (SSMS veya `sqlcmd`):
 
-### A) Çevrimdışı — kurulum yok
+```
+sql\01_accuplan_report_functions.sql
+sql\02_accuplan_report_procs.sql
+```
 
-1. Depoyu indirin (GitHub'da **Code → Download ZIP**) ve klasörü açın.
-2. `public\index.html` dosyasını çift tıklayın.
-3. Sağ üstteki **XML / kayıtlı JSON dosyası** alanından iş emri dokümanını yükleyin.
+Kontrol için (isteğe bağlı, örnek iş emri adını betiğin başında değiştirin):
 
-Dokümanı SQL Server Management Studio'da şu sorguyla alıp `IFS9599-DK.xml` adıyla kaydedebilirsiniz:
+```
+sql\03_dogrulama.sql
+```
+
+Beklenen sonuç: `KESİM FARKI kontrolu` bölümü **boş** döner — yani kesim adetleri iş emri
+asortisini tüm bedenlerde karşılıyor demektir.
+
+Raporu çalıştıracak kullanıcı/hesaba yalnızca şu yetkiler yeterlidir:
 
 ```sql
-SELECT CAST(document AS VARCHAR(MAX)) AS Icerik
-  FROM [Accuplan].[dbo].[WorkOrder]
- WHERE name = 'IFS9599-DK';
+GRANT SELECT ON dbo.WorkOrder TO [rapor_kullanicisi];
+GRANT EXECUTE ON SCHEMA::dbo TO [rapor_kullanicisi];   -- ya da tek tek usp_Accuplan* prosedürleri
 ```
 
-Sonuç hücresine tıklayıp içeriği bir metin dosyasına yapıştırın ve **UTF-8** olarak `.xml`
-uzantısıyla kaydedin. (Bu yolda Türkçe karakterler bozuk görünebilir; sorunsuz sonuç için B seçeneği.)
+### 2. Rapor
 
-### B) Veritabanına bağlı — Node.js ile
-
-Windows'ta `npm` komutu `'npm' is not recognized...` hatası veriyorsa Node.js kurulu değildir:
-
-1. <https://nodejs.org> adresinden **LTS** sürümünü indirip kurun (varsayılan seçeneklerle).
-2. Açık olan komut istemini **kapatıp yeniden açın** (PATH ancak o zaman güncellenir).
-3. `node -v` ve `npm -v` komutlarının sürüm numarası yazdırdığını doğrulayın.
-
-Sonra proje klasöründe:
-
-```bash
-npm install
-cp .env.example .env      # Windows: copy .env.example .env
-# .env içindeki DB_SERVER / DB_USER / DB_PASSWORD alanlarını doldurun
-npm start
-# tarayıcı: http://localhost:3000
-```
-
-**Named instance** (örn. `SUNUCU\SQLEXPRESS`) kullanıyorsanız `DB_SERVER` alanına ters bölü ile
-tek satırda yazmanız yeterli; uygulama sunucu ve örnek adını ayırır. Bu durumda **`DB_PORT`
-satırını silin** — SQL Server sürücüsü port ile örnek adını aynı anda kabul etmez. SQL Browser
-servisi kapalıysa örnek adı yerine örneğin sabit portunu `DB_PORT` ile verin.
-
-Windows'ta bunun yerine **`baslat.bat`** dosyasını çift tıklamanız da yeterlidir; gerekli kurulumu
-yapıp tarayıcıyı açar.
-
-Veritabanı bağlantısı olmadan denemek için:
-
-```bash
-DEMO_MODE=1 npm start     # Windows PowerShell: $env:DEMO_MODE=1; npm start
-```
-
-Demo modunda `sample/IFS9599-DK.xml` (gerçek 182 numaralı iş emrinin dokümanı) kullanılır;
-arayüz ve hesaplar birebir aynı çalışır.
-
-Hesaplama motorunun doğrulaması:
-
-```bash
-npm test
-```
+1. `rdl\AccuplanKesimRaporu.rdl` dosyasını **Report Builder** (veya Visual Studio / SSDT) ile açın.
+2. `Accuplan` veri kaynağının bağlantı dizesinde `SUNUCU-ADI` yerine kendi sunucunuzu yazın:
+   `Data Source=SUNUCU-ADI;Initial Catalog=Accuplan`
+   Named instance ise örnek adı da yazılır: `Data Source=SUNUCU\SQLEXPRESS;Initial Catalog=Accuplan`
+3. Önizlemede **İŞEMRİ NO** listesinden iş emrini seçin.
+4. Rapor sunucusuna dağıtın: Report Builder → Kaydet → Rapor Sunucusu.
 
 ---
 
-## Kullanım
+## Rapor içeriği
 
-1. **İŞEMRİ NO** listesinden iş emrini seçin (liste `WorkOrder.name` alanından gelir; üstteki
-   *Ara* kutusu iş emri no / model üzerinden süzer).
-2. Seçim yapıldığı anda `document` alanı okunur, XML jQuery ile ayrıştırılır ve rapor basılır.
-3. **Raporu Kaydet** — rapor iş emri numarasıyla `data/reports/<İŞEMRİNO>.json` dosyasına yazılır
-   (ham XML ile birlikte). **Kayıtlıyı Aç** ile geri yüklenir.
-4. **Excel'e Aktar** — `<İŞEMRİNO>-kesim-raporu.xlsx` indirilir. Hesaplanan hücreler **formül**
-   olarak yazılır, dosya Excel'de canlı kalır.
-5. **XML İndir / Yazdır** — ham dokümanı almak veya raporu yazıcıya/PDF'e vermek için.
+**Parametreler**
 
-Veritabanına erişilemeyen bir makinede çalışıyorsanız, dokümanı elle çekip bir `.xml` dosyasına
-kaydedebilir ve panelin sağındaki **veya XML dosyasından** alanıyla yükleyebilirsiniz (yukarıdaki
-A seçeneği). Çevrimdışı modda **Raporu Kaydet** düğmesi raporu `.json` olarak indirir; aynı alandan
-geri yüklenir.
-
----
-
-## Veritabanı okuma
-
-`document` alanı `varbinary(max)` olduğu için SQL tarafında `CAST(... AS VARCHAR(MAX))` yapıldığında
-Türkçe karakterler bozulur (`İş Emri` → `Ä°ÅŸ Emri`). Uygulama bu yüzden ham byte dizisini alır ve
-Node tarafında UTF-8 (gerekirse UTF-16LE) olarak çözer — `server/db.js` içindeki `decodeDocument`.
-
-Kullanılan sorgular:
-
-```sql
--- liste
-SELECT TOP (@limit) id, name, number, created_on, status, models, fabric_codes, ...
-  FROM dbo.WorkOrder ORDER BY created_on DESC;
-
--- tek iş emri
-SELECT TOP (1) id, name, number, document, ... FROM dbo.WorkOrder WHERE name = @name;
-```
-
-Uygulama yalnızca **okuma** yapar; hiçbir tabloya yazmaz.
-
----
-
-## XML → şablon eşleştirmesi
-
-| Şablon alanı | XML kaynağı |
+| Parametre | Açıklama |
 |---|---|
-| İŞEMRİ NO | `Information/WorkOrderNumber` |
-| MÜŞTERİ | `Information/CompanyName` |
-| MODEL | `Models/Model/@Name` |
-| TARİH | `Information/DateReceived` |
-| KUMAŞ (KESİM sayfası) | `CutPlans/CutPlan/FabricCodes/Code` |
-| BEDENLER | `Model/SizeLine/Size` (yalnızca siparişi olan veya pastalda geçen bedenler) |
-| İŞEMRİ ADETİ | `CutPlan/Input/Color/Bundle/@Quantity` |
-| EN (cm) | `CutPlan/Fabric/@Width` × 2,54 |
-| PASTAL PAYI (m) | `CutPlan/Fabric/@EndLoss` × 0,0254 (panelden elle geçilebilir) |
-| Pastal asortisi | `MarkerSpreading/Marker/Section/Bundle/@Quantity` |
-| KAT SAYISI | `SpreadSets/SpreadSet/plySet/@PlyQuantity` toplamı |
-| SERİM | `SpreadSet/@SpreadQuantity` |
-| VERİMLİLİK | `Marker/@MadeUtilization` (yoksa `@Utilization`) |
-| PASTAL BOYU | `Marker/@MadeLength`, yoksa hesaplanır (aşağıya bakın) |
+| İŞEMRİ NO | `WorkOrder.name` alanından dolan liste |
+| Pastal payı (m) | Boş bırakılırsa kumaşın `EndLoss` değeri kullanılır |
+| Pastalsız planları da göster | Onaylı pastalı olmayan kumaş planlarını da listeler |
 
-### Hesaplanan sütunlar
+**Bölümler**
 
-```
-PASTAL BOYU (m)      = MadeLength × 0,0254
-                       ya da  Σ(parça alanı × asorti) / (kumaş eni × verimlilik) × 0,0254
-F. PASTAL BOYU (m)   = PASTAL BOYU + pastal payı
-TOPL. AD.            = İŞ ADETİ × KAT SAYISI × SERİM
-BİRİM METRAJ (m)     = PASTAL BOYU / İŞ ADETİ
-KUMAŞ SARF (m)       = F. PASTAL BOYU × KAT SAYISI × SERİM
-TOPLAM KESİM (beden) = Σ (asorti × kat × serim)
-KESİM FARKI          = TOPLAM KESİM − İŞEMRİ ADETİ
-Ağırlıklı verimlilik = Σ(sarf × verimlilik) / Σ(sarf)
-SERİM SÜRESİ (dk)    = serim × (kurulum + kat × (boy / serme hızı + dönüş süresi))
-KESİM SÜRESİ (dk)    = serim × (Σ parça çevresi / kesim hızı + parça × paket alma süresi)
-```
+- **ÖZET** — plan bazında pastal, toplam kat, serim, kesim adedi, kumaş sarfı, ağırlıklı verimlilik,
+  serim/kesim süreleri ve genel toplam.
+- **BEDEN DAĞILIMI** — bedenler sütun grubudur; beden sayısı iş emrine göre kendiliğinden değişir.
+- **KESİM PLANLARI** — her kumaş için İŞEMRİ ADETİ satırı, pastal satırları ve
+  TOPLAM ASORTİ / TOPLAM KESİM / KESİM FARKI / BEDEN DAĞILIMI % satırları.
 
-Pastal boyu formülü örnek iş emrinde doğrulanmıştır: CP-01 pastalında
-`Σalan / (en × MadeUtilization)` sonucu Accuplan'ın yazdığı `MadeLength = 62,70325"` değerini
-birebir verir. Süreler `CutPlan/CostSettings` hızlarından türetilen **tahminlerdir**; Accuplan bu
-alanları dokümanda tutmaz.
-
-> Not: `MadeUtilization` gerçekleşen pastal verimliliğidir ve planlanandan yüksek olabilir
-> (örnekte CP-01: planlanan %86,5 → gerçekleşen %95,36). Verimlilik hücresinin üzerine gelince
-> her ikisi de görünür.
-
+Her kumaş planı yeni sayfada başlar ve sayfa adı `KESİM-1`, `KESİM-2`… olarak verilir; bu yüzden
+**Excel'e aktarımda her kumaş planı ayrı sayfa (sheet) olarak** gelir — şablonun birebir karşılığı.
+PDF ve Word dışa aktarımı da SSRS'in kendi işlevidir, ek geliştirme gerekmez.
 
 ---
 
-## SSRS / RDL sürümü
+## Hesaplar
 
-Aynı rapor, Node.js'e hiç gerek kalmadan **SSRS raporu (.rdl)** olarak da çalışır. Bu sürüm
-deponun `ssrs/` bölümündedir ve kendi başına kuruludur — kurulum, rapor içeriği ve veri katmanı
-için **[ssrs/README.md](ssrs/README.md)** dosyasına bakın.
+```
+PASTAL BOYU (m)    = Marker/@MadeLength × 0,0254                     (gerçekleşen)
+                     yoksa Σ(parça alanı × asorti) / (kumaş eni × verimlilik) × 0,0254
+F. PASTAL BOYU (m) = PASTAL BOYU + pastal payı
+TOPL. AD.          = İŞ ADETİ × KAT SAYISI × SERİM
+BİRİM METRAJ (m)   = PASTAL BOYU / İŞ ADETİ
+KUMAŞ SARF (m)     = F. PASTAL BOYU × KAT SAYISI × SERİM
+TOPLAM KESİM       = Σ (asorti × kat × serim)
+KESİM FARKI        = TOPLAM KESİM − İŞEMRİ ADETİ
+Ağırlıklı verim.   = Σ(sarf × verimlilik) / Σ(sarf)
+SERİM SÜRESİ (dk)  = serim × (kurulum + kat × (boy / serme hızı + dönüş süresi))
+KESİM SÜRESİ (dk)  = serim × (Σ parça çevresi / kesim hızı + parça × paket alma süresi)
+```
 
-| | HTML + Node (kök dizin) | RDL / SSRS (`ssrs/`) |
-|---|---|---|
-| Gereksinim | Node.js | SQL Server Reporting Services (Express sürümü ücretsiz) |
-| Kurulum | istemci makinede | sunucuda bir kez, tüm kullanıcılar tarayıcıdan açar |
-| Excel / PDF | ExcelJS ile xlsx | SSRS'in kendi Excel / PDF / Word dışa aktarımı |
-| Zamanlanmış gönderim | yok | SSRS abonelikleri (yalnızca Standard ve üzeri; Express'te yok) |
-| Yetkilendirme | yok | SSRS klasör/rol izinleri |
-| Türkçe karakter | Node UTF-8 çözümü | `CAST(document AS XML)` ile sorunsuz |
+Accuplan ölçüleri inch cinsindendir; fonksiyonlar metre/cm'e çevirir. Pastal boyu formülü örnek iş
+emrinde doğrulanmıştır: CP-01 pastalında `Σalan / (en × MadeUtilization)` sonucu Accuplan'ın yazdığı
+`MadeLength = 62,70325"` değerini birebir verir.
 
-Hesap formülleri iki sürümde aynıdır ve aynı örnek iş emrinde birebir aynı sonucu verir.
+Süreler `CutPlan/CostSettings` hızlarından türetilen **tahminlerdir**; Accuplan bu alanları dokümanda
+tutmaz. Fabrikanın gerçek süreleriyle uyuşmuyorsa `fn_AccuplanMarkerRows` içindeki iki satır değiştirilir.
+
+> **Türkçe karakter:** `CAST(document AS VARCHAR(MAX))` kullanılırsa `SİNOP` → `SÄ°NOP` olur.
+> Fonksiyonlar her yerde `CAST(document AS XML)` kullanır; XML ayrıştırıcısı UTF-8'i doğru
+> yorumladığı için bu dönüşümde bozulma olmaz.
 
 ---
 
-## Dosya düzeni
+## Veri katmanı
 
-```
-baslat.bat       Windows başlatıcı (kurulum + sunucu + tarayıcı)
-ssrs/            SSRS sürümü — Node.js'ten bağımsız, kendi README'si var
-  sql/           XML ayrıştırma fonksiyonları + rapor prosedürleri
-  rdl/           AccuplanKesimRaporu.rdl
-  tools/         rdl_check.py (RDL yapısal doğrulayıcı)
-server/          Express API (mssql okuma, rapor kaydetme)
-  config.js      .env okuma
-  db.js          MSSQL sorguları + varbinary→metin çözümü
-  index.js       API uçları ve statik sunum
-public/
-  index.html     Arayüz
-  js/accuplan-parser.js   XML → rapor modeli (jQuery)
-  js/report-render.js     Model → şablon tabloları
-  js/excel-export.js      Model → xlsx (ExcelJS, formüllü)
-  js/app.js               Arayüz akışı
-  vendor/        jQuery, ExcelJS, FileSaver (depoda hazır — çevrimdışı mod için)
-sample/          Örnek iş emri dokümanı (demo modu)
-test/            Hesaplama doğrulama testleri (npm test)
-data/reports/    Kaydedilen raporlar (iş emri numarasıyla)
-```
-
-## API uçları
-
-| Uç | Açıklama |
+| Nesne | İşlevi |
 |---|---|
-| `GET /api/health` | Mod (MSSQL / demo) bilgisi |
-| `GET /api/workorders?q=` | İş emri listesi |
-| `GET /api/workorders/:name/document` | Seçilen iş emrinin XML dokümanı |
-| `GET /api/reports` | Kaydedilmiş raporlar |
-| `GET /api/reports/:name` | Kayıtlı raporu getir |
-| `PUT /api/reports/:name` | Raporu kaydet |
-| `DELETE /api/reports/:name` | Kaydı sil |
+| `fn_AccuplanDoc` | `document` alanını XML'e çevirir |
+| `fn_AccuplanHeader` | iş emri no, müşteri, model, tarih, hazırlayan |
+| `fn_AccuplanSizes` | modelin beden listesi |
+| `fn_AccuplanPlans` | kumaş planları: en, EndLoss, serim yöntemi, maliyet ayarları |
+| `fn_AccuplanOrderQty` | beden bazında iş emri adetleri |
+| `fn_AccuplanMeasures` | beden bazında parça alanı ve çevresi |
+| `fn_AccuplanAsorti` | pastal × beden asorti adetleri |
+| `fn_AccuplanMarkerBase` | pastal + serim kümesi (kat ve serim ayrı tutulur) |
+| `fn_AccuplanUsedSizes` | raporda gösterilecek bedenler |
+| `fn_AccuplanMarkerRows` | pastal boyu / sarf / verimlilik / süre hesapları |
+| `usp_AccuplanWorkOrderList` | İŞEMRİ NO parametresini besler |
+| `usp_AccuplanReportHeader` | rapor başlığı |
+| `usp_AccuplanSummary` | ÖZET tablosu |
+| `usp_AccuplanSizeDistribution` | beden dağılımı |
+| `usp_AccuplanCutMatrix` | KESİM matrisi — her hücre bir satırdır, beden sütunları iş emrine göre oluşur |
+
+---
+
+## Geliştirme
+
+RDL dosyasında elle değişiklik yapıldıysa yapısal kontrol:
+
+```bash
+python3 tools/rdl_check.py
+```
+
+Kontrol edilenler: tablix gövde satır/sütun sayısının hiyerarşiyle uyumu, her satırdaki hücre
+sayısı, ifadelerdeki `Fields!` ve `Parameters!` referanslarının tanımlı olması, ölçü değerlerinin
+geçerli birimde (`in/mm/cm/pt/pc`) olması ve Textbox adlarının benzersizliği.
+
+---
+
+## Örnek doküman
+
+`ornek-document.xml`, `WorkOrder.document` alanının çözülmüş hâlidir (iş emri IFS9599-DK, id 182).
+Fonksiyonları geliştirirken veya XML yapısını incelerken referans olarak kullanılabilir; raporun
+çalışması için gerekli değildir.

@@ -1,3 +1,7 @@
+# Node araclari bu dalda kullanilmaz, yine de yerelde olusabilir
 node_modules/
-.env
-data/reports/*.json
+
+# SSRS tarafinda derleme ciktisi / gecici dosyalar
+*.rdl.data
+bin/
+obj/

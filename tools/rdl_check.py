@@ -6,7 +6,7 @@ RDL yapisal kontrolu — Report Builder acmadan once yakalanabilecek hatalar:
   * Ifadelerdeki Fields!X.Value alanlari ilgili veri kumesinde tanimli mi
   * Parameters!X.Value parametreleri raporda tanimli mi
   * Textbox adlari benzersiz mi
-Calistirmak icin:  python3 ssrs/tools/rdl_check.py [ssrs/rdl/AccuplanKesimRaporu.rdl]
+Calistirmak icin:  python3 tools/rdl_check.py [rdl/AccuplanKesimRaporu.rdl]
 """
 import re
 import sys
