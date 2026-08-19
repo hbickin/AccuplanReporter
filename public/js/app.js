@@ -10,6 +10,10 @@
 (function (window, $) {
   'use strict';
 
+  // index.html cift tiklanarak (file://) acildiginda sunucu yoktur: veritabani
+  // uclari devre disi kalir, rapor yalnizca XML/JSON dosyasindan uretilir.
+  var OFFLINE = window.location.protocol === 'file:';
+
   var state = {
     workOrders: [],
     xml: '',
@@ -61,6 +65,7 @@
   }
 
   function loadWorkOrders() {
+    if (OFFLINE) return $.Deferred().resolve().promise();
     busy(true, 'İş emirleri okunuyor...');
     return $.getJSON('/api/workorders')
       .done(function (res) {
@@ -73,6 +78,16 @@
   }
 
   function loadHealth() {
+    if (OFFLINE) {
+      $('#mode-badge').addClass('demo').text('ÇEVRİMDIŞI · dosyadan rapor');
+      $('#wo-filter, #wo-select, #btn-load, #btn-refresh').prop('disabled', true);
+      $('#wo-select').empty().append('<option>— sunucu yok, XML dosyası yükleyin —</option>');
+      $('#saved-select').empty().append('<option>— sunucu yok —</option>').prop('disabled', true);
+      $('#btn-open, #btn-delete').prop('disabled', true);
+      $('#file-xml').attr('accept', '.xml,.json,text/xml,application/xml,application/json');
+      $('label[for=file-xml]').text('XML / kayıtlı JSON dosyası');
+      return $.Deferred().resolve().promise();
+    }
     return $.getJSON('/api/health').done(function (h) {
       state.demo = h.demo;
       $('#mode-badge')
@@ -132,10 +147,38 @@
     if (!file) return;
     var reader = new FileReader();
     reader.onload = function (e) {
-      state.xml = String(e.target.result || '');
-      state.name = file.name.replace(/\.xml$/i, '');
+      var icerik = String(e.target.result || '');
+      state.name = file.name.replace(/\.(xml|json)$/i, '');
       state.kaynak = 'kaynak: ' + file.name;
-      renderCurrent();
+
+      if (/\.json$/i.test(file.name)) {          // daha once kaydedilmis rapor
+        var payload;
+        try {
+          payload = JSON.parse(icerik);
+        } catch (err) {
+          toast('JSON okunamadı: ' + err.message, 'error');
+          return;
+        }
+        if (payload.options) {
+          $('#opt-bos').prop('checked', !!payload.options.includeEmptyPlans);
+          if (payload.options.pastalPayiM !== undefined) $('#opt-pay').val(payload.options.pastalPayiM);
+        }
+        state.xml = payload.xml || '';
+        if (state.xml) {
+          renderCurrent();
+        } else if (payload.rapor) {
+          state.rapor = payload.rapor;
+          window.AccuplanRender.render($('#report'), state.rapor);
+          $('#report-actions').show();
+          $('#empty-state').hide();
+        } else {
+          toast('Dosyada rapor verisi yok.', 'error');
+          return;
+        }
+      } else {
+        state.xml = icerik;
+        renderCurrent();
+      }
       toast(file.name + ' okundu.', 'ok');
     };
     reader.onerror = function () { toast('Dosya okunamadı.', 'error'); };
@@ -147,6 +190,13 @@
   function saveReport() {
     if (!state.rapor) { toast('Önce rapor oluşturun.', 'error'); return; }
     var name = state.name || state.rapor.info.workOrderNumber;
+
+    if (OFFLINE) {   // sunucu yok: rapor dosya olarak indirilir
+      var payload = { workOrder: name, savedAt: new Date().toISOString(), rapor: state.rapor, xml: state.xml, options: options() };
+      window.saveAs(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' }), name + '.json');
+      toast(name + '.json indirildi. Geri yüklemek için dosya alanından seçin.', 'ok');
+      return;
+    }
     busy(true, 'Kaydediliyor...');
     $.ajax({
       url: '/api/reports/' + encodeURIComponent(name),
@@ -163,6 +213,7 @@
   }
 
   function loadSavedList() {
+    if (OFFLINE) return $.Deferred().resolve().promise();
     return $.getJSON('/api/reports').done(function (res) {
       var $sel = $('#saved-select').empty().append('<option value="">— kayıtlı rapor —</option>');
       $.each(res.items || [], function (i, r) {

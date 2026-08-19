@@ -8,7 +8,44 @@ Rapor düzeni `EminAsortiKesimhaneBosSablon.xlsx` şablonunu izler: her kumaş (
 
 ---
 
-## Hızlı başlangıç
+## İki kullanım şekli
+
+| | Veritabanına bağlı mod | Çevrimdışı mod |
+|---|---|---|
+| Gereksinim | Node.js kurulu olmalı | **Hiçbir kurulum gerekmez** |
+| İş emri seçimi | Açılır listeden (`WorkOrder` tablosu) | İş emri XML'ini dosyadan yüklersiniz |
+| Raporu saklama | `data/reports/` klasörüne | `.json` olarak indirilir, geri yüklenir |
+| Excel'e aktarma | var | var |
+
+> Tarayıcı doğrudan MSSQL'e bağlanamaz — bu güvenlik nedeniyle hiçbir tarayıcıda mümkün değildir.
+> İş emrini listeden seçip veritabanından okumak için küçük bir yerel sunucu (Node.js) gerekir.
+
+### A) Çevrimdışı — kurulum yok
+
+1. Depoyu indirin (GitHub'da **Code → Download ZIP**) ve klasörü açın.
+2. `public\index.html` dosyasını çift tıklayın.
+3. Sağ üstteki **XML / kayıtlı JSON dosyası** alanından iş emri dokümanını yükleyin.
+
+Dokümanı SQL Server Management Studio'da şu sorguyla alıp `IFS9599-DK.xml` adıyla kaydedebilirsiniz:
+
+```sql
+SELECT CAST(document AS VARCHAR(MAX)) AS Icerik
+  FROM [Accuplan].[dbo].[WorkOrder]
+ WHERE name = 'IFS9599-DK';
+```
+
+Sonuç hücresine tıklayıp içeriği bir metin dosyasına yapıştırın ve **UTF-8** olarak `.xml`
+uzantısıyla kaydedin. (Bu yolda Türkçe karakterler bozuk görünebilir; sorunsuz sonuç için B seçeneği.)
+
+### B) Veritabanına bağlı — Node.js ile
+
+Windows'ta `npm` komutu `'npm' is not recognized...` hatası veriyorsa Node.js kurulu değildir:
+
+1. <https://nodejs.org> adresinden **LTS** sürümünü indirip kurun (varsayılan seçeneklerle).
+2. Açık olan komut istemini **kapatıp yeniden açın** (PATH ancak o zaman güncellenir).
+3. `node -v` ve `npm -v` komutlarının sürüm numarası yazdırdığını doğrulayın.
+
+Sonra proje klasöründe:
 
 ```bash
 npm install
@@ -17,6 +54,9 @@ cp .env.example .env      # Windows: copy .env.example .env
 npm start
 # tarayıcı: http://localhost:3000
 ```
+
+Windows'ta bunun yerine **`baslat.bat`** dosyasını çift tıklamanız da yeterlidir; gerekli kurulumu
+yapıp tarayıcıyı açar.
 
 Veritabanı bağlantısı olmadan denemek için:
 
@@ -46,9 +86,10 @@ npm test
    olarak yazılır, dosya Excel'de canlı kalır.
 5. **XML İndir / Yazdır** — ham dokümanı almak veya raporu yazıcıya/PDF'e vermek için.
 
-Veritabanına erişilemeyen bir makinede çalışıyorsanız, dokümanı elle çekip
-(`SELECT CAST(document AS VARCHAR(MAX)) FROM dbo.WorkOrder WHERE name='IFS9599-DK'`) bir `.xml`
-dosyasına kaydedebilir ve panelin sağındaki **veya XML dosyasından** alanıyla yükleyebilirsiniz.
+Veritabanına erişilemeyen bir makinede çalışıyorsanız, dokümanı elle çekip bir `.xml` dosyasına
+kaydedebilir ve panelin sağındaki **veya XML dosyasından** alanıyla yükleyebilirsiniz (yukarıdaki
+A seçeneği). Çevrimdışı modda **Raporu Kaydet** düğmesi raporu `.json` olarak indirir; aynı alandan
+geri yüklenir.
 
 ---
 
@@ -122,6 +163,7 @@ alanları dokümanda tutmaz.
 ## Dosya düzeni
 
 ```
+baslat.bat       Windows başlatıcı (kurulum + sunucu + tarayıcı)
 server/          Express API (mssql okuma, rapor kaydetme)
   config.js      .env okuma
   db.js          MSSQL sorguları + varbinary→metin çözümü
@@ -132,7 +174,7 @@ public/
   js/report-render.js     Model → şablon tabloları
   js/excel-export.js      Model → xlsx (ExcelJS, formüllü)
   js/app.js               Arayüz akışı
-  vendor/        jQuery, ExcelJS, FileSaver (npm install ile kopyalanır)
+  vendor/        jQuery, ExcelJS, FileSaver (depoda hazır — çevrimdışı mod için)
 sample/          Örnek iş emri dokümanı (demo modu)
 test/            Hesaplama doğrulama testleri
 data/reports/    Kaydedilen raporlar (iş emri numarasıyla)
