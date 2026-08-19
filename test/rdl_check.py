@@ -92,6 +92,30 @@ for tablix in root.iter(Q('Tablix')):
                 if alan not in datasets[dsn]:
                     hata('%s: PageName içindeki "%s" alanı %s içinde yok' % (ad, alan, dsn))
 
+# --- olcu birimleri -----------------------------------------------------------
+# RDL yalnizca in / mm / cm / pt / pc kabul eder. "3.45cmcm" gibi bir deger
+# Report Builder'da "gecerli bir birim gostergesi degil" hatasi verir.
+OLCU_ETIKET = {
+    'Top', 'Left', 'Height', 'Width', 'Size', 'PageHeight', 'PageWidth',
+    'LeftMargin', 'RightMargin', 'TopMargin', 'BottomMargin', 'ColumnSpacing',
+    'InteractiveHeight', 'InteractiveWidth', 'FontSize',
+    'PaddingLeft', 'PaddingRight', 'PaddingTop', 'PaddingBottom',
+}
+OLCU_DESEN = re.compile(r'^-?\d+(\.\d+)?(in|mm|cm|pt|pc)$')
+olcu_sayisi = 0
+for el in root.iter():
+    etiket = el.tag.split('}')[-1]
+    if etiket not in OLCU_ETIKET:
+        continue
+    metin = (el.text or '').strip()
+    if not metin or metin.startswith('='):   # ifade olabilir
+        continue
+    # <Border><Width> gibi ic ogeler de olcu; <Size> yalnizca TablixHeader icinde
+    olcu_sayisi += 1
+    if not OLCU_DESEN.match(metin):
+        hata('geçersiz ölçü değeri <%s>%s</%s>' % (etiket, metin, etiket))
+ok('%d ölçü değeri geçerli birimde (in/mm/cm/pt/pc)' % olcu_sayisi)
+
 # --- gövdedeki serbest textbox'lar: kapsam belirtilmis alan referanslari -------
 govde_ifade = 0
 for tb in root.iter(Q('Textbox')):
