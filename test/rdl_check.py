@@ -1,0 +1,129 @@
+# -*- coding: utf-8 -*-
+"""
+RDL yapisal kontrolu — Report Builder acmadan once yakalanabilecek hatalar:
+  * Tablix govde satir/sutun sayisi, hiyerarsideki yaprak uye sayisiyla uyusuyor mu
+  * Her satirdaki hucre sayisi sutun sayisina esit mi
+  * Ifadelerdeki Fields!X.Value alanlari ilgili veri kumesinde tanimli mi
+  * Parameters!X.Value parametreleri raporda tanimli mi
+  * Textbox adlari benzersiz mi
+Calistirmak icin:  python3 test/rdl_check.py [rdl/AccuplanKesimRaporu.rdl]
+"""
+import re
+import sys
+import os
+import xml.etree.ElementTree as ET
+
+NS = {'r': 'http://schemas.microsoft.com/sqlserver/reporting/2010/01/reportdefinition'}
+Q = lambda t: '{%s}%s' % (NS['r'], t)
+
+path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
+    os.path.dirname(__file__), '..', 'rdl', 'AccuplanKesimRaporu.rdl')
+
+tree = ET.parse(path)
+root = tree.getroot()
+hatalar = []
+kontrol = []
+
+
+def ok(msg):
+    kontrol.append('  ok   ' + msg)
+
+
+def hata(msg):
+    hatalar.append(msg)
+    kontrol.append('  HATA ' + msg)
+
+
+# --- veri kumeleri ve alanlari ------------------------------------------------
+datasets = {}
+for ds in root.iter(Q('DataSet')):
+    name = ds.get('Name')
+    datasets[name] = set(f.get('Name') for f in ds.iter(Q('Field')))
+ok('%d veri kümesi: %s' % (len(datasets), ', '.join(sorted(datasets))))
+
+params = set(p.get('Name') for p in root.iter(Q('ReportParameter')))
+ok('%d parametre: %s' % (len(params), ', '.join(sorted(params))))
+
+
+# --- tablix yapisi ------------------------------------------------------------
+def yaprak_sayisi(members_el):
+    """TablixMembers altindaki yaprak (alt uyesi olmayan) uye sayisi."""
+    n = 0
+    for m in members_el.findall(Q('TablixMember')):
+        alt = m.find(Q('TablixMembers'))
+        n += yaprak_sayisi(alt) if alt is not None else 1
+    return n
+
+
+for tablix in root.iter(Q('Tablix')):
+    ad = tablix.get('Name')
+    body = tablix.find(Q('TablixBody'))
+    sutun = len(body.find(Q('TablixColumns')).findall(Q('TablixColumn')))
+    satirlar = body.find(Q('TablixRows')).findall(Q('TablixRow'))
+
+    ch = tablix.find(Q('TablixColumnHierarchy')).find(Q('TablixMembers'))
+    rh = tablix.find(Q('TablixRowHierarchy')).find(Q('TablixMembers'))
+    ch_leaf, rh_leaf = yaprak_sayisi(ch), yaprak_sayisi(rh)
+
+    if sutun != ch_leaf:
+        hata('%s: gövde sütun sayısı %d, sütun hiyerarşisi yaprak sayısı %d' % (ad, sutun, ch_leaf))
+    elif len(satirlar) != rh_leaf:
+        hata('%s: gövde satır sayısı %d, satır hiyerarşisi yaprak sayısı %d' % (ad, len(satirlar), rh_leaf))
+    else:
+        ok('%s: %d sütun x %d satır, hiyerarşiyle uyumlu' % (ad, sutun, len(satirlar)))
+
+    for i, satir in enumerate(satirlar):
+        hucre = len(satir.find(Q('TablixCells')).findall(Q('TablixCell')))
+        if hucre != sutun:
+            hata('%s: %d. satırda %d hücre var, %d olmalı' % (ad, i + 1, hucre, sutun))
+
+    # veri bolgesi icindeki alan referanslari kendi veri kumesinde olmali
+    dsn = tablix.findtext(Q('DataSetName'))
+    if dsn not in datasets:
+        hata('%s: tanımsız veri kümesi "%s"' % (ad, dsn))
+        continue
+    for deger in tablix.iter(Q('Value')):
+        for alan in re.findall(r'Fields!(\w+)\.Value', deger.text or ''):
+            if alan not in datasets[dsn]:
+                hata('%s: "%s" alanı %s veri kümesinde yok' % (ad, alan, dsn))
+    for pname in tablix.iter():
+        if pname.tag == Q('PageName'):
+            for alan in re.findall(r'Fields!(\w+)\.Value', pname.text or ''):
+                if alan not in datasets[dsn]:
+                    hata('%s: PageName içindeki "%s" alanı %s içinde yok' % (ad, alan, dsn))
+
+# --- gövdedeki serbest textbox'lar: kapsam belirtilmis alan referanslari -------
+govde_ifade = 0
+for tb in root.iter(Q('Textbox')):
+    for deger in tb.iter(Q('Value')):
+        metin = deger.text or ''
+        for alan, ds in re.findall(r'Fields!(\w+)\.Value\s*,\s*"(\w+)"', metin):
+            govde_ifade += 1
+            if ds not in datasets:
+                hata('%s: tanımsız veri kümesi "%s"' % (tb.get('Name'), ds))
+            elif alan not in datasets[ds]:
+                hata('%s: "%s" alanı %s içinde yok' % (tb.get('Name'), alan, ds))
+        for p in re.findall(r'Parameters!(\w+)\.Value', metin):
+            if p not in params:
+                hata('%s: tanımsız parametre "%s"' % (tb.get('Name'), p))
+ok('%d kapsam belirtilmiş alan referansı doğrulandı' % govde_ifade)
+
+# --- sorgu parametreleri ------------------------------------------------------
+for qp in root.iter(Q('QueryParameter')):
+    for p in re.findall(r'Parameters!(\w+)\.Value', qp.findtext(Q('Value')) or ''):
+        if p not in params:
+            hata('Sorgu parametresi tanımsız: %s' % p)
+ok('sorgu parametreleri doğrulandı')
+
+# --- benzersiz adlar ----------------------------------------------------------
+adlar = [tb.get('Name') for tb in root.iter(Q('Textbox'))]
+tekrar = set(a for a in adlar if adlar.count(a) > 1)
+if tekrar:
+    hata('tekrarlayan Textbox adı: %s' % ', '.join(sorted(tekrar)))
+else:
+    ok('%d Textbox adı benzersiz' % len(adlar))
+
+print('\n'.join(kontrol))
+print('')
+print('%d hata' % len(hatalar) if hatalar else 'RDL yapısal kontrolleri başarılı.')
+sys.exit(1 if hatalar else 0)
