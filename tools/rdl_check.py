@@ -13,11 +13,18 @@ import sys
 import os
 import xml.etree.ElementTree as ET
 
-NS = {'r': 'http://schemas.microsoft.com/sqlserver/reporting/2010/01/reportdefinition'}
-Q = lambda t: '{%s}%s' % (NS['r'], t)
+# Report Builder dosyayi kaydettiginde sema surumunu yukseltebilir
+# (2010/01 -> 2016/01); ad alanini kok ogeden okuyoruz.
+def _ad_alani(dosya):
+    for _, el in ET.iterparse(dosya, events=('start',)):
+        return el.tag.split('}')[0].lstrip('{') if el.tag.startswith('{') else ''
+    return ''
 
 path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
     os.path.dirname(os.path.abspath(__file__)), '..', 'rdl', 'AccuplanKesimRaporu.rdl')
+
+NS = {'r': _ad_alani(path)}
+Q = lambda t: '{%s}%s' % (NS['r'], t)
 
 tree = ET.parse(path)
 root = tree.getroot()

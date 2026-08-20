@@ -71,9 +71,16 @@ GRANT EXECUTE ON SCHEMA::dbo TO [rapor_kullanicisi];   -- ya da tek tek usp_Accu
 
 | Parametre | Açıklama |
 |---|---|
-| İŞEMRİ NO | `WorkOrder.name` alanından dolan liste |
+| Ara | İş emri no veya model parçası yazın; **İŞEMRİ NO listesi buna göre süzülür**. Boş bırakılırsa en yeni 500 iş emri listelenir |
+| İŞEMRİ NO | `WorkOrder.name` alanından dolan liste (Ara kutusuna göre süzülür) |
 | Pastal payı (m) | Boş bırakılırsa kumaşın `EndLoss` değeri kullanılır |
 | Pastalsız planları da göster | Onaylı pastalı olmayan kumaş planlarını da listeler |
+
+> **Neden arama kutusu var?** SSRS parametre panelinde yazdıkça tamamlayan (autocomplete)
+> bir kutu yoktur; `ValidValues` tanımlı her parametre açılır liste olarak çizilir. Uzun
+> listelerde standart çözüm budur: **Ara** kutusuna yazıp sekme/tıklama ile çıkın, İŞEMRİ NO
+> listesi yalnızca eşleşenleri gösterecek şekilde yenilenir. Açılır liste açıkken harflere
+> basmak da eşleşen kayda atlar.
 
 **Bölümler**
 
