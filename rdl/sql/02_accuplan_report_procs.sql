@@ -106,17 +106,28 @@ AS RETURN
       FROM metre AS m;
 GO
 
-/* --- rapor parametresi: is emri listesi -------------------------------- */
+/* --- rapor parametresi: is emri listesi --------------------------------
+   Raporun "Ara" parametresi buraya @Search olarak gelir: kullanici yazdikca
+   İŞEMRİ NO listesi suzulur (SSRS'te gercek autocomplete yoktur; standart
+   cozum budur). Arama bosken en yeni @Top kayit listelenir, boylece binlerce
+   is emri olan kurulumlarda acilir liste kullanilabilir kalir.              */
 CREATE OR ALTER PROCEDURE dbo.usp_AccuplanWorkOrderList
-    @Search nvarchar(200) = NULL
+    @Search nvarchar(200) = NULL,
+    @Top    int           = 500
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT w.id, w.name, w.number, w.created_on, w.status, w.models, w.fabric_codes,
+
+    /* Rapor bos kutuyu bos metin olarak gonderebilir; NULL ile ayni sayilir. */
+    SET @Search = NULLIF(LTRIM(RTRIM(@Search)), N'');
+
+    SELECT TOP (@Top)
+           w.id, w.name, w.number, w.created_on, w.status, w.models, w.fabric_codes,
            Etiket = w.name + CASE WHEN NULLIF(w.models, '') IS NULL THEN '' ELSE '  —  ' + w.models END
       FROM dbo.WorkOrder AS w
      WHERE @Search IS NULL
-        OR w.name  LIKE '%' + @Search + '%'
+        OR w.name   LIKE '%' + @Search + '%'
+        OR w.number LIKE '%' + @Search + '%'
         OR w.models LIKE '%' + @Search + '%'
      ORDER BY w.created_on DESC, w.id DESC;
 END;
