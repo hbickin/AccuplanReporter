@@ -121,15 +121,21 @@ BEGIN
     /* Rapor bos kutuyu bos metin olarak gonderebilir; NULL ile ayni sayilir. */
     SET @Search = NULLIF(LTRIM(RTRIM(@Search)), N'');
 
-    SELECT TOP (@Top)
-           w.id, w.name, w.number, w.created_on, w.status, w.models, w.fabric_codes,
-           Etiket = w.name + CASE WHEN NULLIF(w.models, '') IS NULL THEN '' ELSE '  —  ' + w.models END
-      FROM dbo.WorkOrder AS w
-     WHERE @Search IS NULL
-        OR w.name   LIKE '%' + @Search + '%'
-        OR w.number LIKE '%' + @Search + '%'
-        OR w.models LIKE '%' + @Search + '%'
-     ORDER BY w.created_on DESC, w.id DESC;
+    /* Once en yeni @Top kayit secilir (eski is emirleri listeyi sismesin),
+       sonra acilir listede kolay bulunsun diye ada gore alfabetik siralanir. */
+    SELECT t.id, t.name, t.number, t.created_on, t.status, t.models, t.fabric_codes, t.Etiket
+      FROM (
+            SELECT TOP (@Top)
+                   w.id, w.name, w.number, w.created_on, w.status, w.models, w.fabric_codes,
+                   Etiket = w.name + CASE WHEN NULLIF(w.models, '') IS NULL THEN '' ELSE '  —  ' + w.models END
+              FROM dbo.WorkOrder AS w
+             WHERE @Search IS NULL
+                OR w.name   LIKE '%' + @Search + '%'
+                OR w.number LIKE '%' + @Search + '%'
+                OR w.models LIKE '%' + @Search + '%'
+             ORDER BY w.created_on DESC, w.id DESC
+           ) AS t
+     ORDER BY t.name, t.id;
 END;
 GO
 
