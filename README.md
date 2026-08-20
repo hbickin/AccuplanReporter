@@ -174,6 +174,17 @@ URL'e yazıp tarayıcıda **sık kullanılanlara eklemek**:
 - **KESİM PLANLARI** — her kumaş için İŞEMRİ ADETİ satırı, pastal satırları ve
   TOPLAM ASORTİ / TOPLAM KESİM / KESİM FARKI / BEDEN DAĞILIMI % satırları.
 
+**Sayfa üstbilgisi:** 2. sayfadan itibaren her sayfanın başında iş emri / müşteri / model / tarih
+bilgisini taşıyan koyu bir şerit çıkar (1. sayfada zaten tam başlık bloğu vardır). Bu şerit
+**Excel çıktısında görünmez** — `Globals!RenderFormat.Name` ile gizlenir; Excel sayfaları
+bugünkü hâliyle kalır.
+
+> Sayfa üstbilgisinde **veri kümesi alanları kullanılamaz** (SSRS kuralı: header/footer içinde
+> `Fields!...` geçersizdir). Bu yüzden müşteri, model ve tarih değerleri `hMusteri`, `hModel`,
+> `hTarih` adlı **gizli parametrelere** `dsHeader` veri kümesinden varsayılan olarak aktarılır ve
+> şeritte parametre olarak okunur. Toplam kumaş gibi toplulaştırılmış değerler bu yolla
+> taşınamadığı için şeritte yer almaz; tam blok 1. sayfada durur.
+
 Her kumaş planı yeni sayfada başlar ve sayfa adı `KESİM-1`, `KESİM-2`… olarak verilir; bu yüzden
 **Excel'e aktarımda her kumaş planı ayrı sayfa (sheet) olarak** gelir — şablonun birebir karşılığı.
 PDF ve Word dışa aktarımı da SSRS'in kendi işlevidir, ek geliştirme gerekmez.
