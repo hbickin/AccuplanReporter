@@ -3,11 +3,11 @@
 Accuplan iş emirlerinin `[Accuplan].[dbo].[WorkOrder].[document]` alanındaki XML'i **doğrudan
 SQL Server üzerinde** ayrıştırıp kesimhane asorti raporunu üretir.
 
-Bu dal (`rdl`) kendi başına çalışır: Node.js, npm veya herhangi bir paket kurulumu gerektirmez.
+Bu klasör kendi başına çalışır: Node.js, npm veya herhangi bir paket kurulumu gerektirmez.
 İhtiyaç duyulan tek şey **SQL Server + Reporting Services**'tir.
 
-> Tarayıcıda çalışan jQuery sürümü için **[`html`](../../tree/html)** dalına bakın. Hesap
-> formülleri iki dalda aynıdır ve aynı iş emrinde birebir aynı sonucu verir.
+> Tarayıcıda çalışan jQuery sürümü için **[`html`](../../tree/html)** dalına bakın. Hesap formülleri
+> iki sürümde aynıdır ve aynı iş emrinde birebir aynı sonucu verir.
 
 > **Express sürümü kullanıyorsanız:** Reporting Services'in Express sürümü ücretsizdir ve raporu
 > çalıştırmak, tarayıcıda açmak, Excel/PDF'e aktarmak için yeterlidir. Ancak **zamanlanmış
@@ -17,12 +17,13 @@ Bu dal (`rdl`) kendi başına çalışır: Node.js, npm veya herhangi bir paket 
 > sürece sorun çıkmaz.
 
 ```
-sql/    01_accuplan_report_functions.sql   XML ayrıştırma fonksiyonları
+rdl/
+  AccuplanKesimRaporu.rdl              SSRS raporu
+  sql/  01_accuplan_report_functions.sql   XML ayrıştırma fonksiyonları
         02_accuplan_report_procs.sql       hesaplar + rapor prosedürleri
         03_dogrulama.sql                   kurulum sonrası kontrol betiği
-rdl/    AccuplanKesimRaporu.rdl            SSRS raporu
-tools/  rdl_check.py                       RDL yapısal doğrulayıcı (geliştirme aracı)
-ornek-document.xml                         örnek iş emri dokümanı (IFS9599-DK)
+  tools/rdl_check.py                   RDL yapısal doğrulayıcı (geliştirme aracı)
+  ornek-document.xml                   örnek iş emri dokümanı (IFS9599-DK)
 ```
 
 ---
@@ -62,6 +63,77 @@ GRANT EXECUTE ON SCHEMA::dbo TO [rapor_kullanicisi];   -- ya da tek tek usp_Accu
    Named instance ise örnek adı da yazılır: `Data Source=SUNUCU\SQLEXPRESS;Initial Catalog=Accuplan`
 3. Önizlemede **İŞEMRİ NO** listesinden iş emrini seçin.
 4. Rapor sunucusuna dağıtın: Report Builder → Kaydet → Rapor Sunucusu.
+
+
+---
+
+## Rapor sunucusuna yükleme
+
+### 0. Report Server kurulu mu?
+
+Reporting Services, SQL Server'la birlikte gelmez — **ayrı bir kurulumdur**. Kontrol için Başlat
+menüsünde *"Report Server Configuration Manager"* (Reporting Services Yapılandırma Yöneticisi)
+aratın.
+
+**Varsa:** açın, **Web Portal URL** sekmesindeki adresi not edin (genelde `http://SUNUCU/Reports`).
+
+**Yoksa:** *Microsoft SQL Server 2022 Reporting Services* installer'ını indirip kurun (Express
+sürümü ücretsizdir). Kurulumdan sonra Yapılandırma Yöneticisi'nde sırasıyla:
+
+1. **Service Account** — varsayılan hesap yeterli
+2. **Web Service URL** → *Uygula*
+3. **Database** → *Change Database* → *Create a new report server database* → sunucu olarak
+   SQL Server örneğinizi seçin → sihirbazı bitirin
+4. **Web Portal URL** → *Uygula*
+
+### 1. Rapor için veritabanı kullanıcısı
+
+Rapor sunucusunun veritabanına bağlanacağı kullanıcı. Raporun ihtiyacı olan **tek yetki, beş
+prosedürü çalıştırmaktır** — tabloya doğrudan erişim gerekmez (prosedür ve tablo aynı sahibe ait
+olduğu için sahiplik zinciri devreye girer):
+
+```sql
+CREATE LOGIN accuplan_rapor WITH PASSWORD = 'guclu-bir-sifre';
+USE Accuplan;
+CREATE USER accuplan_rapor FOR LOGIN accuplan_rapor;
+GRANT EXECUTE ON dbo.usp_AccuplanWorkOrderList    TO accuplan_rapor;
+GRANT EXECUTE ON dbo.usp_AccuplanReportHeader     TO accuplan_rapor;
+GRANT EXECUTE ON dbo.usp_AccuplanSummary          TO accuplan_rapor;
+GRANT EXECUTE ON dbo.usp_AccuplanSizeDistribution TO accuplan_rapor;
+GRANT EXECUTE ON dbo.usp_AccuplanCutMatrix        TO accuplan_rapor;
+```
+
+### 2. Raporu yükleme — iki yol
+
+**A) Report Builder'dan:** Dosya → *Farklı Kaydet* → *Rapor Sunucusu veya SharePoint Sitesi* →
+adres olarak `http://SUNUCU/ReportServer` yazın → hedef klasörü seçin → *Kaydet*.
+
+**B) Web portalından:** `http://SUNUCU/Reports` adresini açın → istediğiniz klasöre girin →
+üstteki **Karşıya Yükle** (Upload) → `AccuplanKesimRaporu.rdl` dosyasını seçin.
+
+### 3. Veri kaynağı kimlik bilgisi — atlanırsa rapor açılmaz
+
+Rapordaki veri kaynağı, Report Builder'da Windows kimliğiyle çalışır; sunucuda çalışırken bu kimlik
+SQL Server'a taşınmaz. Bu yüzden yükledikten sonra:
+
+Portal → raporun üzerindeki **⋯** → **Yönet** → **Veri Kaynakları** →
+*Bu veri kaynağında saklanan kimlik bilgilerini kullan* → 1. adımdaki kullanıcı adı ve şifre →
+**Bağlantıyı Sına** → **Uygula**.
+
+### 4. Kimler görecek
+
+Portal → klasör → **Yönet** → **Güvenlik** → *Rol Ata* → kullanıcı/grup ekleyip **Browser** rolünü
+verin. Raporu değiştirebilmeleri gerekiyorsa *Content Manager*.
+
+### 5. Kontrol
+
+Raporu portalda açın: **Ara** kutusuna iş emri numarasının bir parçasını yazın → **İŞEMRİ NO**
+listesinden seçin → **Raporu Görüntüle**. Excel/PDF çıktısı üstteki **Dışa Aktar** menüsündedir.
+
+> **Report Server kurmak istemiyorsanız:** `.rdl` dosyasını ortak bir ağ klasörüne koyup her
+> kullanıcının kendi Report Builder'ıyla açması da çalışır. Kurulum gerektirmez, ancak herkesin
+> Report Builder'ı olması ve veritabanına kendi Windows hesabıyla erişebilmesi gerekir; zamanlanmış
+> gönderim ve merkezi yetkilendirme bu yolda yoktur.
 
 ---
 
