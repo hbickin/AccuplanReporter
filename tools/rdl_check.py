@@ -192,6 +192,63 @@ for qp in root.iter(Q('QueryParameter')):
             hata('Sorgu parametresi tanımsız: %s' % p)
 ok('sorgu parametreleri doğrulandı')
 
+# --- parametre paneli izgarasi ------------------------------------------------
+# SSRS, GIZLI parametreler dahil TUM parametreler icin hucre ister; yetmezse
+# "The parameter panel layout ... contains more parameters than total cells available".
+yerlesim = root.find(Q('ReportParametersLayout'))
+if yerlesim is None:
+    ok('parametre paneli düzeni tanımsız (SSRS varsayılan yerleşimi kullanılır)')
+else:
+    izgara = yerlesim.find(Q('GridLayoutDefinition'))
+    sutun = int(izgara.findtext(Q('NumberOfColumns')) or 0)
+    satir = int(izgara.findtext(Q('NumberOfRows')) or 0)
+    hucreler = list(izgara.iter(Q('CellDefinition')))
+    yerlesenler = [h.findtext(Q('ParameterName')) for h in hucreler]
+    onceki = len(hatalar)
+    if sutun * satir < len(params):
+        hata('parametre paneli %dx%d = %d hücre, %d parametre için yetersiz'
+             % (sutun, satir, sutun * satir, len(params)))
+    eksik = [p for p in params if p not in yerlesenler]
+    if eksik:
+        hata('parametre paneline yerleştirilmemiş: %s' % ', '.join(sorted(eksik)))
+    fazla = [p for p in yerlesenler if p not in params]
+    if fazla:
+        hata('panelde tanımsız parametre: %s' % ', '.join(sorted(set(fazla))))
+    konumlar = [(h.findtext(Q('ColumnIndex')), h.findtext(Q('RowIndex'))) for h in hucreler]
+    if len(set(konumlar)) != len(konumlar):
+        hata('aynı hücreye birden fazla parametre konulmuş')
+    if len(hatalar) == onceki:
+        ok('parametre paneli %dx%d, %d parametrenin tamamı yerleşik' % (sutun, satir, len(params)))
+
+# --- sayfa ustbilgisi/altbilgisi ----------------------------------------------
+# SSRS kurali: header/footer icinde veri kumesi alanlari (Fields!) kullanilamaz.
+for bolge_adi in ('PageHeader', 'PageFooter'):
+    for bolge in root.iter(Q(bolge_adi)):
+        for deger in bolge.iter(Q('Value')):
+            alanlar = re.findall(r'Fields!(\w+)\.Value', deger.text or '')
+            if alanlar:
+                hata('%s içinde veri kümesi alanı kullanılamaz: %s'
+                     % (bolge_adi, ', '.join(sorted(set(alanlar)))))
+ok('sayfa üstbilgi/altbilgisinde veri kümesi alanı yok')
+
+# --- govde duzeyindeki serbest ogeler -----------------------------------------
+# Genisleyen bir tablix sayfanin yatay izgarasini genisletir; ayni hizada Left>0
+# ile duran serbest ogeler saga itilir. Cozum: Rectangle icine almak.
+govde = root.find(Q('ReportSections')).find(Q('ReportSection')).find(Q('Body'))
+serbest = 0
+for it in govde.find(Q('ReportItems')):
+    sol = (it.findtext(Q('Left')) or '0cm').strip()
+    try:
+        deger = float(re.sub(r'[a-z]+$', '', sol))
+    except ValueError:
+        deger = 0.0
+    if deger > 0 and it.tag != Q('Rectangle'):
+        serbest += 1
+        uyari('%s gövde düzeyinde Left=%s ile duruyor; genişleyen tablix onu sağa itebilir'
+              % (it.get('Name'), sol))
+if not serbest:
+    ok('gövde düzeyinde Left=0 dışında serbest öğe yok')
+
 # --- benzersiz adlar ----------------------------------------------------------
 adlar = [tb.get('Name') for tb in root.iter(Q('Textbox'))]
 tekrar = set(a for a in adlar if adlar.count(a) > 1)
