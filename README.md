@@ -144,7 +144,8 @@ listesinden seçin → **Raporu Görüntüle**. Excel/PDF çıktısı üstteki *
 | Parametre | Açıklama |
 |---|---|
 | Ara | İş emri no veya model parçası yazın; **İŞEMRİ NO listesi buna göre süzülür**. Boş bırakılırsa en yeni 500 iş emri listelenir |
-| İŞEMRİ NO | `WorkOrder.name` alanından dolan liste, **ada göre alfabetik** (Ara kutusuna göre süzülür). Rapor **en yeni iş emriyle** açılır |
+| Sıralama | İŞEMRİ NO listesinin sırası: **En son yapılan önce** (varsayılan) veya **Alfabetik (A → Z)** |
+| İŞEMRİ NO | `WorkOrder.name` alanından dolan liste (Ara ve Sıralama'ya göre şekillenir). Rapor, sıralamadan bağımsız olarak **en yeni iş emriyle** açılır |
 | Pastal payı (m) | Boş bırakılırsa kumaşın `EndLoss` değeri kullanılır |
 | Pastalsız planları da göster | Onaylı pastalı olmayan kumaş planlarını da listeler |
 
