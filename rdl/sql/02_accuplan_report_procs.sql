@@ -113,7 +113,8 @@ GO
    is emri olan kurulumlarda acilir liste kullanilabilir kalir.              */
 CREATE OR ALTER PROCEDURE dbo.usp_AccuplanWorkOrderList
     @Search nvarchar(200) = NULL,
-    @Top    int           = 500
+    @Top    int           = 500,
+    @Sirala nvarchar(10)  = N'Yeni'   -- 'Yeni' = en son yapilan once, 'Ad' = alfabetik
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -122,7 +123,9 @@ BEGIN
     SET @Search = NULLIF(LTRIM(RTRIM(@Search)), N'');
 
     /* Once en yeni @Top kayit secilir (eski is emirleri listeyi sismesin),
-       sonra acilir listede kolay bulunsun diye ada gore alfabetik siralanir. */
+       sonra bu kume istenen olcute gore siralanir:
+         @Sirala = 'Yeni' -> en son yapilan is emri basta (varsayilan)
+         @Sirala = 'Ad'   -> ada gore alfabetik                          */
     SELECT t.id, t.name, t.number, t.created_on, t.status, t.models, t.fabric_codes, t.Etiket
       FROM (
             SELECT TOP (@Top)
@@ -135,7 +138,9 @@ BEGIN
                 OR w.models LIKE '%' + @Search + '%'
              ORDER BY w.created_on DESC, w.id DESC
            ) AS t
-     ORDER BY t.name, t.id;
+     ORDER BY CASE WHEN @Sirala = N'Ad' THEN t.name END ASC,
+              CASE WHEN @Sirala = N'Ad' THEN NULL ELSE t.created_on END DESC,
+              t.id DESC;
 END;
 GO
 

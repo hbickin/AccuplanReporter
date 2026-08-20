@@ -36,6 +36,9 @@
           <QueryParameter Name="@Search">
             <Value>=Parameters!Ara.Value</Value>
           </QueryParameter>
+        <QueryParameter Name="@Sirala">
+            <Value>=Parameters!Sirala.Value</Value>
+          </QueryParameter>
         </QueryParameters>
       </Query>
       <Fields>
@@ -4125,6 +4128,27 @@
     </ReportSection>
   </ReportSections>
   <ReportParameters>
+    <ReportParameter Name="Sirala">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>Yeni</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>Sıralama</Prompt>
+      <ValidValues>
+        <ParameterValues>
+          <ParameterValue>
+            <Value>Yeni</Value>
+            <Label>En son yapılan önce</Label>
+          </ParameterValue>
+          <ParameterValue>
+            <Value>Ad</Value>
+            <Label>Alfabetik (A → Z)</Label>
+          </ParameterValue>
+        </ParameterValues>
+      </ValidValues>
+    </ReportParameter>
     <ReportParameter Name="Ara">
       <DataType>String</DataType>
       <DefaultValue>
@@ -4175,7 +4199,7 @@
   <ReportParametersLayout>
     <GridLayoutDefinition>
       <NumberOfColumns>2</NumberOfColumns>
-      <NumberOfRows>2</NumberOfRows>
+      <NumberOfRows>3</NumberOfRows>
       <CellDefinitions>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
@@ -4196,6 +4220,11 @@
           <ColumnIndex>1</ColumnIndex>
           <RowIndex>1</RowIndex>
           <ParameterName>PastalPayi</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>2</RowIndex>
+          <ParameterName>Sirala</ParameterName>
         </CellDefinition>
       </CellDefinitions>
     </GridLayoutDefinition>
