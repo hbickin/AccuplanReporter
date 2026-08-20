@@ -73,6 +73,25 @@
         </Field>
       </Fields>
     </DataSet>
+    <DataSet Name="dsSonIsEmri">
+      <Query>
+        <DataSourceName>Accuplan</DataSourceName>
+        <CommandType>StoredProcedure</CommandType>
+        <CommandText>dbo.usp_AccuplanWorkOrderList</CommandText>
+        <QueryParameters>
+          <QueryParameter Name="@Top">
+            <Value>1</Value>
+          </QueryParameter>
+        </QueryParameters>
+        <rd:UseGenericDesigner>true</rd:UseGenericDesigner>
+      </Query>
+      <Fields>
+        <Field Name="name">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>name</DataField>
+        </Field>
+      </Fields>
+    </DataSet>
     <DataSet Name="dsHeader">
       <Query>
         <DataSourceName>Accuplan</DataSourceName>
@@ -4121,7 +4140,7 @@
       <Prompt>İŞEMRİ NO</Prompt>
       <DefaultValue>
         <DataSetReference>
-          <DataSetName>dsWorkOrders</DataSetName>
+          <DataSetName>dsSonIsEmri</DataSetName>
           <ValueField>name</ValueField>
         </DataSetReference>
       </DefaultValue>
