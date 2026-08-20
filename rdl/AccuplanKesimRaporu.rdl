@@ -4028,7 +4028,59 @@
       </Body>
       <Width>25.5cm</Width>
       <Page>
-        <PageFooter>
+      <PageHeader>
+        <Height>0.95cm</Height>
+        <PrintOnFirstPage>false</PrintOnFirstPage>
+        <PrintOnLastPage>true</PrintOnLastPage>
+        <ReportItems>
+          <Textbox Name="txtSayfaUst">
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>="KESİMHANE ASORTİ RAPORU     İŞ EMRİ: " &amp; Parameters!WorkOrderName.Value &amp; IIf(IsNothing(Parameters!hMusteri.Value), "", "     MÜŞTERİ: " &amp; Parameters!hMusteri.Value) &amp; IIf(IsNothing(Parameters!hModel.Value), "", "     MODEL: " &amp; Parameters!hModel.Value) &amp; IIf(IsNothing(Parameters!hTarih.Value), "", "     TARİH: " &amp; Format(Parameters!hTarih.Value, "dd.MM.yyyy HH:mm"))</Value>
+                    <Style>
+                      <FontFamily>Segoe UI</FontFamily>
+                      <FontSize>9pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
+                      <Color>#ffffff</Color>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Left</TextAlign>
+                </Style>
+              </Paragraph>
+            </Paragraphs>
+            <rd:DefaultName>txtSayfaUst</rd:DefaultName>
+            <Visibility>
+              <Hidden>=Globals!RenderFormat.Name = "EXCELOPENXML" Or Globals!RenderFormat.Name = "EXCEL"</Hidden>
+            </Visibility>
+            <Top>0.1cm</Top>
+            <Left>0cm</Left>
+            <Height>0.75cm</Height>
+            <Width>25.4cm</Width>
+            <ZIndex>1</ZIndex>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+              <BackgroundColor>#1f4e78</BackgroundColor>
+              <VerticalAlign>Middle</VerticalAlign>
+              <PaddingLeft>4pt</PaddingLeft>
+              <PaddingRight>4pt</PaddingRight>
+            </Style>
+          </Textbox>
+        </ReportItems>
+        <Style>
+          <Border>
+            <Style>None</Style>
+          </Border>
+        </Style>
+      </PageHeader>
+              <PageFooter>
           <Height>0.7cm</Height>
           <PrintOnFirstPage>true</PrintOnFirstPage>
           <PrintOnLastPage>true</PrintOnLastPage>
@@ -4195,7 +4247,43 @@
       </DefaultValue>
       <Prompt>Pastal payı (m)</Prompt>
     </ReportParameter>
-  </ReportParameters>
+  <ReportParameter Name="hMusteri">
+      <DataType>String</DataType>
+      <Nullable>true</Nullable>
+      <DefaultValue>
+        <DataSetReference>
+          <DataSetName>dsHeader</DataSetName>
+          <ValueField>CompanyName</ValueField>
+        </DataSetReference>
+      </DefaultValue>
+      <Prompt>hMusteri</Prompt>
+      <Hidden>true</Hidden>
+    </ReportParameter>
+    <ReportParameter Name="hModel">
+      <DataType>String</DataType>
+      <Nullable>true</Nullable>
+      <DefaultValue>
+        <DataSetReference>
+          <DataSetName>dsHeader</DataSetName>
+          <ValueField>ModelName</ValueField>
+        </DataSetReference>
+      </DefaultValue>
+      <Prompt>hModel</Prompt>
+      <Hidden>true</Hidden>
+    </ReportParameter>
+    <ReportParameter Name="hTarih">
+      <DataType>DateTime</DataType>
+      <Nullable>true</Nullable>
+      <DefaultValue>
+        <DataSetReference>
+          <DataSetName>dsHeader</DataSetName>
+          <ValueField>DateReceived</ValueField>
+        </DataSetReference>
+      </DefaultValue>
+      <Prompt>hTarih</Prompt>
+      <Hidden>true</Hidden>
+    </ReportParameter>
+    </ReportParameters>
   <ReportParametersLayout>
     <GridLayoutDefinition>
       <NumberOfColumns>2</NumberOfColumns>
