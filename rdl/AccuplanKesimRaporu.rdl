@@ -3840,7 +3840,7 @@
                       <GroupExpression>=Fields!PlanSeq.Value</GroupExpression>
                     </GroupExpressions>
                     <PageBreak>
-                      <BreakLocation>End</BreakLocation>
+                      <BreakLocation>Between</BreakLocation>
                     </PageBreak>
                     <PageName>=First(Fields!SheetName.Value)</PageName>
                   </Group>
@@ -4108,18 +4108,23 @@
   <ReportParameters>
     <ReportParameter Name="Ara">
       <DataType>String</DataType>
-      <Nullable>true</Nullable>
       <DefaultValue>
         <Values>
-          <Value>=Nothing</Value>
+          <Value />
         </Values>
       </DefaultValue>
       <AllowBlank>true</AllowBlank>
-      <Prompt>Ara (iş emri no / model)</Prompt>
+      <Prompt>Ara</Prompt>
     </ReportParameter>
     <ReportParameter Name="WorkOrderName">
       <DataType>String</DataType>
       <Prompt>İŞEMRİ NO</Prompt>
+      <DefaultValue>
+        <DataSetReference>
+          <DataSetName>dsWorkOrders</DataSetName>
+          <ValueField>name</ValueField>
+        </DataSetReference>
+      </DefaultValue>
       <ValidValues>
         <DataSetReference>
           <DataSetName>dsWorkOrders</DataSetName>
@@ -4135,7 +4140,7 @@
           <Value>false</Value>
         </Values>
       </DefaultValue>
-      <Prompt>Pastalsız planları da göster</Prompt>
+      <Prompt>Pastalsız planlar</Prompt>
     </ReportParameter>
     <ReportParameter Name="PastalPayi">
       <DataType>Float</DataType>
@@ -4145,7 +4150,7 @@
           <Value>=Nothing</Value>
         </Values>
       </DefaultValue>
-      <Prompt>Pastal payı (m) — boş bırakılırsa kumaş EndLoss</Prompt>
+      <Prompt>Pastal payı (m)</Prompt>
     </ReportParameter>
   </ReportParameters>
   <ReportParametersLayout>

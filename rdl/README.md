@@ -144,7 +144,7 @@ listesinden seçin → **Raporu Görüntüle**. Excel/PDF çıktısı üstteki *
 | Parametre | Açıklama |
 |---|---|
 | Ara | İş emri no veya model parçası yazın; **İŞEMRİ NO listesi buna göre süzülür**. Boş bırakılırsa en yeni 500 iş emri listelenir |
-| İŞEMRİ NO | `WorkOrder.name` alanından dolan liste (Ara kutusuna göre süzülür) |
+| İŞEMRİ NO | `WorkOrder.name` alanından dolan liste (Ara kutusuna göre süzülür). Rapor **en yeni iş emriyle** açılır |
 | Pastal payı (m) | Boş bırakılırsa kumaşın `EndLoss` değeri kullanılır |
 | Pastalsız planları da göster | Onaylı pastalı olmayan kumaş planlarını da listeler |
 
@@ -153,6 +153,17 @@ listesinden seçin → **Raporu Görüntüle**. Excel/PDF çıktısı üstteki *
 > listelerde standart çözüm budur: **Ara** kutusuna yazıp sekme/tıklama ile çıkın, İŞEMRİ NO
 > listesi yalnızca eşleşenleri gösterecek şekilde yenilenir. Açılır liste açıkken harflere
 > basmak da eşleşen kayda atlar.
+
+**Parametre değerleri hatırlanır mı?** SSRS kullanıcı bazında son girilen değerleri saklamaz.
+Kalıcı bir başlangıç değeri isteniyorsa üç yol vardır: (1) raporun varsayılan değerini
+değiştirmek — İŞEMRİ NO için bu yapıldı, rapor en yeni iş emriyle açılır; (2) istenen değerleri
+URL'e yazıp tarayıcıda **sık kullanılanlara eklemek**:
+`http://SUNUCU/Reports/report/AccuplanKesimRaporu?Ara=IFS144&WorkOrderName=IFS14469-DK`
+(klasik uç için `http://SUNUCU/ReportServer?/AccuplanKesimRaporu&Ara=IFS144&rs:Command=Render`);
+(3) yönetici tarafından, varsayılanları sabitlenmiş bir *bağlı rapor* (linked report) oluşturmak.
+
+> Parametre etiketleri bilerek kısa tutuldu: portalın etiket sütunu dardır, uzun metinler alt alta
+> sarılıp paneli dağıtıyor. Açıklamaların uzun hâli bu dosyadadır, panelde değil.
 
 **Bölümler**
 
