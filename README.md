@@ -12,6 +12,9 @@ Aynı işi yapan iki bağımsız sürüm vardır:
 | **[`html/`](html)** | Tarayıcıda çalışan jQuery uygulaması + Express sunucusu | Node.js | Tek makinede hızlı kurulum, ExcelJS ile biçimli xlsx çıktısı, sunucusuz çevrimdışı kullanım |
 | **[`rdl/`](rdl)** | SSRS raporu — XML ayrıştırma ve hesaplar T-SQL tarafında | SQL Server Reporting Services | Sunucuda bir kez kurulup herkesin tarayıcıdan açması, SSRS'in kendi Excel/PDF çıktısı ve yetkilendirmesi |
 
+Ayrıca **[`kesim-simulator/`](kesim-simulator)** klasöründe Gerber / RS-274X kesim dosyalarını (`.CUT`)
+tarayıcıda gösteren ve bıçak hareketini simüle eden tek dosyalık bir HTML aracı bulunur.
+
 Her klasörün kendi README'si vardır; kurulum adımları oradadır. İki sürümün hesap formülleri
 aynıdır ve aynı örnek iş emrinde birebir aynı sonucu verir.
 
