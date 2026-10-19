@@ -19,6 +19,10 @@ tarayıcıda açmanız yeterlidir (internet bağlantısı da gerekmez).
 Renkler: mavi = kesilen kontur, turuncu = çentik, yeşil kesikli = bıçak kalkık boş hareket,
 kırmızı imleç = bıçak aşağıda, yeşil imleç = bıçak yukarıda.
 
+**Yön ikonları:** parça kenarlarındaki küçük `>` işaretleri bıçağın kesim yönünü gösterir —
+yeşil = saat yönünde, mor = saat yönü tersinde; kara nokta (●) parçanın kesim başlangıç noktasıdır.
+Parça etiketinde de ↻ (saat yönü) / ↺ (saat yönü tersi) yazar. İkonlar "Yön ikonları" kutusuyla gizlenebilir.
+
 ## Desteklenen komutlar
 
 | Komut | Anlam |

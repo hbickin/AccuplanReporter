@@ -74,6 +74,8 @@
 
   .progress { width: 160px; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
   .progress > div { height: 100%; width: 0; background: var(--ok); }
+  .legend { display: inline-flex; gap: 10px; align-items: center; }
+  .legend i { font-style: normal; font-weight: 700; }
   .knife-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); vertical-align: middle; margin-right: 4px; }
 
   /* --- Footer: işlem günlüğü --- */
@@ -130,6 +132,12 @@
   <span class="progress"><div id="progressBar"></div></span>
   <b id="progressPct">0%</b>
   <span class="right">
+    <span class="legend" title="Bıçağın parça konturundaki kesim yönü">
+      <span><i style="color:#15803d">&gt;</i> saat yönü</span>
+      <span><i style="color:#9333ea">&lt;</i> saat yönü tersi</span>
+      <span><i style="color:#000;background:#f7f3ea;padding:0 3px;border-radius:2px">●</i> başlangıç</span>
+    </span>
+    <label class="field"><input type="checkbox" id="showDir" checked> Yön ikonları</label>
     <label class="field"><input type="checkbox" id="follow" checked> Bıçağı takip et</label>
     <button class="btn" id="btnFit" disabled>⤢ Sığdır</button>
   </span>
@@ -159,15 +167,20 @@
     pieceFill: 'rgba(255,210,130,.35)', ghost: '#a9a6a0',
     cut: '#1f6feb', notch: '#e8590c', move: 'rgba(34,197,94,.9)',
     current: 'rgba(59,130,246,.22)', label: '#3d3a33',
-    knifeDown: '#ef4444', knifeUp: '#22c55e', viewport: '#ef4444'
+    knifeDown: '#ef4444', knifeUp: '#22c55e', viewport: '#ef4444',
+    dirCw: '#15803d', dirCcw: '#9333ea', start: '#000000'
   };
+  // Yön ikonları için kontur üzerinde aday nokta aralığı (mm)
+  var ARROW_STEP_MM = 20;
+  // Ekranda iki yön ikonu arasındaki en küçük mesafe (px)
+  var ARROW_GAP_PX = 70;
 
   var $ = function (id) { return document.getElementById(id); };
   var els = {
     file: $('fileInput'), fileName: $('fileName'), speed: $('speed'),
     btnSim: $('btnSim'), btnPause: $('btnPause'), btnStop: $('btnStop'), btnFit: $('btnFit'),
     btnReset: $('btnReset'), startPiece: $('startPiece'), onlyPiece: $('onlyPiece'),
-    follow: $('follow'), markerInfo: $('markerInfo'),
+    follow: $('follow'), showDir: $('showDir'), markerInfo: $('markerInfo'),
     preview: $('preview'), sim: $('sim'),
     knifeDot: $('knifeDot'), knifeState: $('knifeState'), pos: $('pos'),
     pieceInfo: $('pieceInfo'), timeInfo: $('timeInfo'),
@@ -481,6 +494,9 @@
       log('info', 'Kesim yolu ' + fmtLen(cutLen) + ', boş hareket ' + fmtLen(moveLen) +
         '. Tahmini süre ' + fmtTime(totalTime) + ' (' + speedMm() + ' mm/sn).');
       if (res.message) log('info', 'Mesaj: ' + res.message);
+      var cw = 0, ccw = 0;
+      res.pieceOrder.forEach(function (id) { var d = res.pieces[id].dir; if (d === 'cw') cw++; else if (d === 'ccw') ccw++; });
+      log('info', 'Kesim yönü: ' + cw + ' parça saat yönünde (>), ' + ccw + ' parça saat yönü tersinde (<).');
     };
     reader.readAsText(file);
     els.file.value = '';
@@ -530,6 +546,79 @@
       if (s.type === 'notch') return;
       if (s.piece !== lastPiece) { poly = paths.fills[s.piece] = new Path2D(); lastPiece = s.piece; poly.moveTo(s.x0, s.y0); }
       poly.lineTo(s.x1, s.y1);
+    });
+    buildDirections();
+  }
+
+  // Her parça için kesim yönü (saat yönü / tersi), başlangıç noktası ve
+  // kontur boyunca eşit aralıklı yön ikonu adayları
+  function buildDirections() {
+    var step = ARROW_STEP_MM / data.unitMm;
+    var acc = {};
+    data.segments.forEach(function (s) {
+      if (s.type !== 'cut') return;
+      var p = data.pieces[s.piece];
+      if (!p) return;
+      var a = acc[s.piece];
+      if (!a) {
+        a = acc[s.piece] = { area: 0, next: step / 2, dist: 0 };
+        p.start = { x: s.x0, y: s.y0 };
+        p.arrows = [];
+      }
+      a.area += s.x0 * s.y1 - s.x1 * s.y0;
+      var ang = Math.atan2(s.y1 - s.y0, s.x1 - s.x0);
+      while (a.next <= a.dist + s.len) {
+        var k = (a.next - a.dist) / s.len;
+        p.arrows.push({ x: s.x0 + (s.x1 - s.x0) * k, y: s.y0 + (s.y1 - s.y0) * k, a: ang });
+        a.next += step;
+      }
+      a.dist += s.len;
+    });
+    Object.keys(acc).forEach(function (id) {
+      var p = data.pieces[id];
+      // Y ekseni yukarı: pozitif alan = saat yönü tersi
+      p.dir = acc[id].area > 0 ? 'ccw' : 'cw';
+      p.perimeter = acc[id].dist;
+    });
+  }
+
+  function dirText(p) {
+    return p && p.dir ? (p.dir === 'cw' ? 'saat yönü' : 'saat yönü tersi') : '';
+  }
+
+  // Parça konturlarına yön ikonlarını (>) ve başlangıç noktasını (●) çizer; ekran koordinatlarında
+  function drawDirections(ctx, d, s, ox, oy) {
+    var stepPx = ARROW_STEP_MM / data.unitMm * s;
+    var every = Math.max(1, Math.ceil(ARROW_GAP_PX / stepPx));
+    var r = Math.max(3, Math.min(6, s * 20));
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    data.pieceOrder.forEach(function (id) {
+      var p = data.pieces[id];
+      if (!p.arrows || !isFinite(p.minX)) return;
+      if (ox + p.maxX * s < -20 || ox + p.minX * s > d.w + 20 || oy - p.minY * s < -20 || oy - p.maxY * s > d.h + 20) return;
+      if (p.perimeter * s < 40) return;
+      var n = p.arrows.length;
+      var list = [];
+      if (n <= every) { if (n) list.push(p.arrows[Math.floor(n / 2)]); }
+      else for (var i = Math.floor(every / 2); i < n; i += every) list.push(p.arrows[i]);
+      ctx.strokeStyle = p.dir === 'cw' ? COLORS.dirCw : COLORS.dirCcw;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      list.forEach(function (ar) {
+        var sx = ox + ar.x * s, sy = oy - ar.y * s;
+        if (sx < -10 || sx > d.w + 10 || sy < -10 || sy > d.h + 10) return;
+        // Dünya açısı ekranda Y ters çevrildiği için -a olur
+        var c = Math.cos(-ar.a), sn = Math.sin(-ar.a);
+        var pt = function (u, v) { return [sx + u * c - v * sn, sy + u * sn + v * c]; };
+        var a1 = pt(-r * 0.6, -r), a2 = pt(r * 0.6, 0), a3 = pt(-r * 0.6, r);
+        ctx.moveTo(a1[0], a1[1]); ctx.lineTo(a2[0], a2[1]); ctx.lineTo(a3[0], a3[1]);
+      });
+      ctx.stroke();
+      // Başlangıç noktası: kara ikon
+      var bx = ox + p.start.x * s, by = oy - p.start.y * s;
+      ctx.beginPath(); ctx.arc(bx, by, r * 0.8 + 1, 0, Math.PI * 2);
+      ctx.fillStyle = COLORS.start; ctx.fill();
+      ctx.lineWidth = 1.2; ctx.strokeStyle = '#ffffff'; ctx.stroke();
     });
   }
 
@@ -595,6 +684,7 @@
     updateButtons(); updateStatus(); renderSim(); renderPreview();
   }
   els.startPiece.addEventListener('change', onRangeChange);
+  els.showDir.addEventListener('change', function () { renderSim(); });
   els.onlyPiece.addEventListener('change', function () { if (els.startPiece.value !== '') onRangeChange(); else updateButtons(); });
 
   els.btnReset.addEventListener('click', function () {
@@ -711,7 +801,8 @@
     lastPieceLogged = id;
     var p = data.pieces[id];
     if (!p) return;
-    log('info', 'Parça ' + (data.pieceOrder.indexOf(id) + 1) + '/' + data.pieceOrder.length + ' kesiliyor: ' + pieceLabel(p));
+    log('info', 'Parça ' + (data.pieceOrder.indexOf(id) + 1) + '/' + data.pieceOrder.length + ' kesiliyor: ' + pieceLabel(p) +
+      (p.dir ? ' (' + dirText(p) + ')' : ''));
   }
 
   function pieceLabel(p) {
@@ -719,6 +810,7 @@
     if (a['PIECE NAME']) parts.push(a['PIECE NAME']);
     if (a['PIECE SIZE']) parts.push('Beden ' + a['PIECE SIZE']);
     if (a['LEFT/RIGHT']) parts.push(a['LEFT/RIGHT']);
+    if (p.dir) parts.push(p.dir === 'cw' ? '↻' : '↺');
     return parts.join(' · ');
   }
 
@@ -936,12 +1028,14 @@
         var pw = (p.maxX - p.minX) * s;
         if (pw < 45) return;
         var a = p.attrs;
-        ctx.fillText('N' + id + (a['PIECE SIZE'] ? ' · ' + a['PIECE SIZE'] : ''), cx, cy - fs * 0.6);
+        ctx.fillText('N' + id + (a['PIECE SIZE'] ? ' · ' + a['PIECE SIZE'] : '') + (p.dir ? (p.dir === 'cw' ? ' ↻' : ' ↺') : ''), cx, cy - fs * 0.6);
         if (a['PIECE NAME'] && pw > 80) {
           ctx.globalAlpha = 0.75; ctx.fillText(a['PIECE NAME'], cx, cy + fs * 0.6); ctx.globalAlpha = 1;
         }
       });
     }
+
+    if (els.showDir.checked) drawDirections(ctx, d, s, ox, oy);
 
     // Bıçak
     if (k && active) {
