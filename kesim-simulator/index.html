@@ -31,6 +31,18 @@
     display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
     padding: 8px 12px; background: var(--panel); border-bottom: 1px solid var(--border);
   }
+  /* --- Logo --- */
+  .brand {
+    display: inline-flex; align-items: center; gap: 8px; margin-right: 6px; padding-right: 14px;
+    border-right: 1px solid var(--border); user-select: none; text-decoration: none;
+  }
+  .brand svg { width: 30px; height: 30px; filter: drop-shadow(0 2px 4px rgba(249,115,22,.35)); }
+  .brand span {
+    font: 800 21px/1 "Segoe UI", system-ui, sans-serif; letter-spacing: .14em;
+    background: linear-gradient(180deg, #fdba74 0%, #f97316 55%, #c2410c 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 1px 8px rgba(249,115,22,.25);
+  }
   .btn {
     display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
     padding: 6px 12px; border: 1px solid var(--border); border-radius: 4px;
@@ -94,6 +106,22 @@
 <body>
 
 <header class="toolbar">
+  <div class="brand" title="BIÇKIN — Kesim Simülatörü">
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <defs>
+        <linearGradient id="bkGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#fdba74"/><stop offset=".55" stop-color="#f97316"/><stop offset="1" stop-color="#c2410c"/>
+        </linearGradient>
+      </defs>
+      <rect x="1" y="1" width="30" height="30" rx="8" fill="url(#bkGrad)"/>
+      <!-- Bıçak ağzı -->
+      <path d="M8 24 L21 7 Q24.5 5.5 25 9 L13 25 Z" fill="#fff"/>
+      <path d="M13 25 L25 9" stroke="#c2410c" stroke-width="1" opacity=".55"/>
+      <!-- Kesim izi -->
+      <path d="M5 27.5 H17" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="2.5 2" opacity=".9"/>
+    </svg>
+    <span>BIÇKIN</span>
+  </div>
   <label class="btn primary" title="Gerber / RS-274X kesim dosyası (.CUT) seç">
     📂 Dosya Seç
     <input type="file" id="fileInput" accept=".cut,.CUT,.txt,.plt,*/*">
