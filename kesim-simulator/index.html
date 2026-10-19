@@ -45,6 +45,11 @@
     width: 90px; padding: 5px 6px; border: 1px solid var(--border); border-radius: 4px;
     background: var(--bg); color: var(--text); font: inherit;
   }
+  .field select {
+    max-width: 320px; padding: 5px 6px; border: 1px solid var(--border); border-radius: 4px;
+    background: var(--bg); color: var(--text); font: inherit;
+  }
+  .field select:disabled, .field input:disabled { opacity: .5; }
   .sep { width: 1px; align-self: stretch; background: var(--border); margin: 0 4px; }
   #fileName { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40ch; }
 
@@ -91,6 +96,13 @@
     📂 Dosya Seç
     <input type="file" id="fileInput" accept=".cut,.CUT,.txt,.plt,*/*">
   </label>
+  <label class="field" title="Simülasyonun başlayacağı parça">
+    Başlangıç
+    <select id="startPiece" disabled><option value="">Tümü (baştan)</option></select>
+  </label>
+  <label class="field" title="İşaretliyse yalnızca seçilen parça kesilir; değilse seçilen parçadan pastal sonuna kadar devam edilir">
+    <input type="checkbox" id="onlyPiece" disabled> Sadece bu parça
+  </label>
   <button class="btn" id="btnSim" disabled>▶ Simüle Et</button>
   <label class="field" title="Bıçağın kesim hızı (mm/sn). Bıçak kalkıkken boş hareket bunun 2 katı hızla yapılır.">
     Hız (mm/sn)
@@ -98,6 +110,7 @@
   </label>
   <button class="btn" id="btnPause" disabled>⏸ Duraklat</button>
   <button class="btn" id="btnStop" disabled>⏹ Durdur</button>
+  <button class="btn" id="btnReset" title="Dosyayı, ayarları, simülasyonu ve günlüğü tamamen sıfırlar">⟲ Reset</button>
   <span class="sep"></span>
   <span id="fileName">Dosya seçilmedi</span>
 </header>
@@ -153,6 +166,7 @@
   var els = {
     file: $('fileInput'), fileName: $('fileName'), speed: $('speed'),
     btnSim: $('btnSim'), btnPause: $('btnPause'), btnStop: $('btnStop'), btnFit: $('btnFit'),
+    btnReset: $('btnReset'), startPiece: $('startPiece'), onlyPiece: $('onlyPiece'),
     follow: $('follow'), markerInfo: $('markerInfo'),
     preview: $('preview'), sim: $('sim'),
     knifeDot: $('knifeDot'), knifeState: $('knifeState'), pos: $('pos'),
@@ -383,7 +397,11 @@
   var data = null;
   var paths = null;          // statik Path2D'ler
   var done = null;           // tamamlanan hareketlerin Path2D'leri
-  var sim = { idx: 0, pos: 0, t: 0, running: false, finished: false, lastTs: 0 };
+  // start/end: simüle edilecek hareket aralığı [start, end)
+  function newSim() {
+    return { idx: 0, pos: 0, t: 0, start: 0, end: 0, started: false, running: false, finished: false, lastTs: 0 };
+  }
+  var sim = newSim();
   var cam = { x: 0, y: 0, s: 1 };
   var previewView = { s: 1, ox: 0, oy: 0 };
   var previewCache = null;
@@ -409,7 +427,8 @@
   function computeTotalTime() {
     totalTime = 0;
     if (!data) return;
-    for (var i = 0; i < data.segments.length; i++) totalTime += segTime(data.segments[i]);
+    var r = simRange();
+    for (var i = r.start; i < r.end; i++) totalTime += segTime(data.segments[i]);
   }
 
   function fmtTime(sec) {
@@ -469,12 +488,13 @@
 
   function setData(res) {
     data = res;
-    sim = { idx: 0, pos: 0, t: 0, running: false, finished: false, lastTs: 0 };
+    sim = newSim();
     paths = null; done = null; previewCache = null;
     if (data) {
       buildPaths();
-      resetDone();
-      computeTotalTime();
+      fillPieceSelect();
+      els.onlyPiece.checked = false;
+      prepareSim();
       fitView();
       var i = data.info, b = data.bounds;
       var bits = [];
@@ -487,6 +507,7 @@
       els.markerInfo.innerHTML = bits.join(' &nbsp;·&nbsp; ');
     } else {
       els.markerInfo.textContent = '—';
+      fillPieceSelect();
     }
     updateButtons();
     updateStatus();
@@ -523,6 +544,73 @@
   // ------------------------------------------------------------------
   // Simülasyon kontrolü
   // ------------------------------------------------------------------
+  // Seçili başlangıç parçasına göre simülasyon aralığı
+  function simRange() {
+    var segs = data.segments, v = els.startPiece.value;
+    if (v === '') return { start: 0, end: segs.length, piece: null };
+    var p = data.pieces[v];
+    if (!p || p.firstSeg < 0) return { start: 0, end: segs.length, piece: null };
+    // Parçaya giden boş hareket de (N komutundan sonra gelir) aynı parçaya aittir
+    var start = p.firstSeg;
+    while (start > 0 && segs[start - 1].piece === p.id) start--;
+    return { start: start, end: els.onlyPiece.checked ? p.lastSeg + 1 : segs.length, piece: p };
+  }
+
+  function prepareSim() {
+    sim = newSim();
+    if (data) {
+      var r = simRange();
+      sim.start = sim.idx = r.start; sim.end = r.end;
+      resetDone();
+      computeTotalTime();
+    }
+  }
+
+  function fillPieceSelect() {
+    var sel = els.startPiece;
+    sel.innerHTML = '<option value="">Tümü (baştan)</option>';
+    if (!data) return;
+    data.pieceOrder.forEach(function (id, i) {
+      var p = data.pieces[id];
+      if (p.firstSeg < 0) return;
+      var o = document.createElement('option');
+      o.value = id;
+      o.textContent = (i + 1) + '. ' + pieceLabel(p);
+      sel.appendChild(o);
+    });
+  }
+
+  function onRangeChange() {
+    if (!data) return;
+    prepareSim();
+    var r = simRange();
+    if (r.piece) {
+      log('info', 'Başlangıç parçası: ' + pieceLabel(r.piece) + (els.onlyPiece.checked ? ' (yalnızca bu parça)' : ' (pastal sonuna kadar)') +
+        '. Tahmini süre ' + fmtTime(totalTime) + '.');
+      var k = knifePos();
+      if (k) { cam.x = k.x; cam.y = k.y; clampCam(); }
+    } else {
+      log('info', 'Başlangıç: tüm pastal baştan. Tahmini süre ' + fmtTime(totalTime) + '.');
+    }
+    updateButtons(); updateStatus(); renderSim(); renderPreview();
+  }
+  els.startPiece.addEventListener('change', onRangeChange);
+  els.onlyPiece.addEventListener('change', function () { if (els.startPiece.value !== '') onRangeChange(); else updateButtons(); });
+
+  els.btnReset.addEventListener('click', function () {
+    sim.running = false;
+    data = null;
+    els.speed.value = 500;
+    els.follow.checked = true;
+    els.onlyPiece.checked = false;
+    els.fileName.textContent = 'Dosya seçilmedi';
+    els.file.value = '';
+    lastPieceLogged = null;
+    els.log.innerHTML = ''; logCount = { warn: 0, error: 0 }; updateLogCounts();
+    setData(null);
+    log('ok', 'Her şey sıfırlandı. Yeni bir kesim dosyası seçebilirsiniz.');
+  });
+
   els.btnSim.addEventListener('click', startSim);
   els.btnPause.addEventListener('click', pauseSim);
   els.btnStop.addEventListener('click', function () { stopSim(false); });
@@ -541,15 +629,20 @@
     if (!data) { log('warn', 'Önce bir kesim dosyası seçin.'); return; }
     if (!validSpeed()) return;
     if (sim.running) return;
-    if (sim.finished) {
-      sim = { idx: 0, pos: 0, t: 0, running: false, finished: false, lastTs: 0 };
-      resetDone();
-    }
-    var fresh = sim.idx === 0 && sim.pos === 0;
+    if (sim.finished || !sim.started) prepareSim();
+    var fresh = !sim.started;
+    sim.started = true;
     sim.running = true;
     sim.lastTs = 0;
-    log('info', (fresh ? 'Simülasyon başladı' : 'Simülasyon devam ediyor') + ' (' + speedMm() + ' mm/sn).');
-    if (fresh) { lastPieceLogged = null; if (data.segments.length) onPieceChange(data.segments[0].piece); }
+    if (fresh) {
+      var r = simRange();
+      log('info', 'Simülasyon başladı (' + speedMm() + ' mm/sn)' +
+        (r.piece ? ', ' + pieceLabel(r.piece) + (els.onlyPiece.checked ? ' — yalnızca bu parça' : ' parçasından itibaren') : '') + '.');
+      lastPieceLogged = null;
+      if (sim.idx < sim.end) onPieceChange(data.segments[sim.idx].piece);
+    } else {
+      log('info', 'Simülasyon devam ediyor (' + speedMm() + ' mm/sn).');
+    }
     updateButtons();
     requestAnimationFrame(tick);
   }
@@ -560,18 +653,19 @@
     updateButtons();
   }
   function stopSim(silent) {
-    var wasActive = sim.running || sim.idx > 0 || sim.pos > 0;
-    sim = { idx: 0, pos: 0, t: 0, running: false, finished: false, lastTs: 0 };
-    if (data) resetDone();
+    var wasActive = sim.started;
+    prepareSim();
     if (wasActive && !silent) log('info', 'Simülasyon durduruldu ve başa alındı.');
     updateButtons(); updateStatus(); renderSim(); renderPreview();
   }
 
   function updateButtons() {
     els.btnSim.disabled = !data || sim.running;
-    els.btnSim.textContent = sim.finished ? '↻ Tekrar Simüle Et' : (sim.idx > 0 || sim.pos > 0) ? '▶ Devam Et' : '▶ Simüle Et';
+    els.btnSim.textContent = sim.finished ? '↻ Tekrar Simüle Et' : sim.started ? '▶ Devam Et' : '▶ Simüle Et';
     els.btnPause.disabled = !sim.running;
-    els.btnStop.disabled = !data || (!sim.running && sim.idx === 0 && sim.pos === 0);
+    els.btnStop.disabled = !data || !sim.started;
+    els.startPiece.disabled = !data || sim.running;
+    els.onlyPiece.disabled = !data || sim.running || els.startPiece.value === '';
     els.btnFit.disabled = !data;
   }
 
@@ -590,22 +684,24 @@
 
   function advance(dt) {
     var segs = data.segments;
-    while (dt > 0 && sim.idx < segs.length) {
+    while (dt > 0 && sim.idx < sim.end) {
       var s = segs[sim.idx];
       var need = segTime(s, sim.pos);
       if (need <= dt) {
         dt -= need; sim.t += need;
         appendDone(s);
         sim.idx++; sim.pos = 0;
-        if (sim.idx < segs.length && segs[sim.idx].piece !== s.piece) onPieceChange(segs[sim.idx].piece);
+        if (sim.idx < sim.end && segs[sim.idx].piece !== s.piece) onPieceChange(segs[sim.idx].piece);
       } else {
         var unitsPerSec = speedMm() * (s.type === 'move' ? MOVE_SPEED_FACTOR : 1) / data.unitMm;
         sim.pos += dt * unitsPerSec; sim.t += dt; dt = 0;
       }
     }
-    if (sim.idx >= segs.length && !sim.finished) {
+    if (sim.idx >= sim.end && !sim.finished) {
       sim.finished = true; sim.running = false;
-      log('ok', 'Simülasyon tamamlandı. ' + data.pieceOrder.length + ' parça kesildi, simüle süre ' + fmtTime(sim.t) + '.');
+      var cut = {};
+      for (var i = sim.start; i < sim.end; i++) if (segs[i].type !== 'move') cut[segs[i].piece] = 1;
+      log('ok', 'Simülasyon tamamlandı. ' + Object.keys(cut).length + ' parça kesildi, simüle süre ' + fmtTime(sim.t) + '.');
       updateButtons();
     }
   }
@@ -629,8 +725,8 @@
   function knifePos() {
     if (!data || !data.segments.length) return null;
     var segs = data.segments;
-    if (sim.idx >= segs.length) {
-      var l = segs[segs.length - 1];
+    if (sim.idx >= sim.end) {
+      var l = segs[Math.max(sim.start, sim.end - 1)];
       return { x: l.x1, y: l.y1, down: false, seg: l, dir: Math.atan2(l.y1 - l.y0, l.x1 - l.x0) };
     }
     var s = segs[sim.idx], k = s.len ? sim.pos / s.len : 0;
@@ -650,7 +746,7 @@
       els.knifeDot.style.background = '';
       return;
     }
-    var active = sim.running || sim.idx > 0 || sim.pos > 0;
+    var active = sim.started;
     var down = active && !sim.finished && k.down;
     els.knifeState.textContent = 'Bıçak: ' + (down ? (k.seg.type === 'notch' ? 'ÇENTİK' : 'AŞAĞIDA (kesiyor)') : 'YUKARIDA');
     els.knifeDot.style.background = down ? COLORS.knifeDown : COLORS.knifeUp;
@@ -771,7 +867,7 @@
       ctx.strokeStyle = COLORS.viewport; ctx.lineWidth = 1.5;
       ctx.strokeRect(vx, vy, vw, vh);
     }
-    if (k && (sim.running || sim.idx > 0 || sim.pos > 0)) {
+    if (k && sim.started) {
       ctx.beginPath(); ctx.arc(ox + k.x * s, oy - k.y * s, 4, 0, Math.PI * 2);
       ctx.fillStyle = k.down && !sim.finished ? COLORS.knifeDown : COLORS.knifeUp; ctx.fill();
     }
@@ -796,7 +892,7 @@
     cam.s = (h - 30) / b.h;
     cam.y = b.h / 2;
     var k = knifePos();
-    cam.x = (sim.idx || sim.pos) && k ? k.x : Math.min(b.w / 2, w / 2 / cam.s);
+    cam.x = (sim.started || sim.start > 0) && k ? k.x : Math.min(b.w / 2, w / 2 / cam.s);
     clampCam();
   }
   function clampCam() {
@@ -821,7 +917,7 @@
     ctx.fillStyle = '#1d2128'; ctx.fillRect(0, 0, d.w, d.h);
     var s = cam.s, ox = d.w / 2 - cam.x * s, oy = d.h / 2 + cam.y * s;
     var k = knifePos();
-    var active = sim.running || sim.idx > 0 || sim.pos > 0;
+    var active = sim.started;
     worldTransform(ctx, d.dpr, s, ox, oy);
     drawScene(ctx, s, { grid: true, ghostWidth: 1, currentPiece: active && !sim.finished && k ? k.seg.piece : null });
     drawDone(ctx, s, 2.2, k);

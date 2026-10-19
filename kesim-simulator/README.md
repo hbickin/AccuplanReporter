@@ -8,10 +8,13 @@ tarayıcıda açmanız yeterlidir (internet bağlantısı da gerekmez).
 
 1. **📂 Dosya Seç** ile `.CUT` dosyasını seçin. Pastalın tamamı üstteki 200 px'lik alanda görünür.
 2. **Hız (mm/sn)** kutusuna tam sayı bir hız girin (bıçak kalkıkken boş hareket bunun 2 katı hızla yapılır).
-3. **▶ Simüle Et** ile simülasyonu başlatın; **Duraklat** / **Durdur** ile kontrol edin (Boşluk tuşu da başlatır/duraklatır).
-4. Simülasyon alanında fare tekerleği ile yakınlaştırın, sürükleyerek kaydırın, çift tıkla sığdırın.
+3. **Başlangıç** listesinden simülasyonun başlayacağı parçayı seçin (varsayılan: tüm pastal baştan).
+   **Sadece bu parça** işaretliyse yalnızca o parça kesilir; değilse o parçadan pastal sonuna kadar devam edilir.
+4. **▶ Simüle Et** ile simülasyonu başlatın; **Duraklat** / **Durdur** ile kontrol edin (Boşluk tuşu da başlatır/duraklatır).
+   **Durdur** simülasyonu seçili başlangıca geri alır; **⟲ Reset** ise dosyayı, ayarları ve günlüğü tamamen sıfırlar.
+5. Simülasyon alanında fare tekerleği ile yakınlaştırın, sürükleyerek kaydırın, çift tıkla sığdırın.
    Önizlemeye tıklamak simülasyon görünümünü o noktaya götürür.
-5. Alttaki **İşlemler** alanı bilgi, uyarı ve hataları gösterir.
+6. Alttaki **İşlemler** alanı bilgi, uyarı ve hataları gösterir.
 
 Renkler: mavi = kesilen kontur, turuncu = çentik, yeşil kesikli = bıçak kalkık boş hareket,
 kırmızı imleç = bıçak aşağıda, yeşil imleç = bıçak yukarıda.
